@@ -22,5 +22,6 @@ function getPageText() {
     while (walker.nextNode()) {
         textArray.push(walker.currentNode.textContent.trim());
     }
+    console.log(textArray);
     return textArray;
 }

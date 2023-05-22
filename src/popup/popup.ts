@@ -70,14 +70,18 @@ async function getCodeFromActiveTab(): Promise<string | null> {
     });
 }
 
+// This function will truncate a string to a certain length, if it exceeds that length
+function truncateString(str: string, maxLength: number) {
+    return str.length > maxLength ? str.slice(0, maxLength) : str;
+}
+
 function processCode(
     chatGPTProvider: ChatGPTProvider,
     codeText: string,
 ): void {
 
-    const MAX_PROMPT_LENGTH = 4000;
     const promptHeader = "Summarize the recipe. Keep it as short as possible. Return the ingredients followed by the instructions. If there is no recipe on the page, return 'no recipe found'";
-    const promptText = codeText.slice(0, Math.min(codeText.length, MAX_PROMPT_LENGTH));
+    const promptText = truncateString(codeText, 450);
 
     document.getElementById('user-message')!.textContent = '';
     chatGPTProvider.generateAnswer({
@@ -88,8 +92,6 @@ function processCode(
                 sendTextToContentScript(event.data.text);
             }
         },
-
-
     });
 }
 
