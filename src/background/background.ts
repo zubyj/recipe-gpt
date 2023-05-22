@@ -6,17 +6,6 @@ chrome.runtime.onMessage.addListener((request: any) => {
     }
 });
 
-chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-    const urlPattern = /^https:\/\/leetcode\.com\/problems\/.*\/solutions\/?/;
-    if (changeInfo.status === 'complete' && tab.url && tab.url.match(urlPattern)) {
-        setTimeout(() => {
-            chrome.tabs.get(tabId, (updatedTab) => {
-                chrome.tabs.sendMessage(tabId, { action: 'addVideo', title: updatedTab.title || 'title' });
-            });
-        }, 1000);
-    }
-});
-
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.type === 'GET_CHATGPT_ACCESS_TOKEN') {
         getChatGPTAccessToken().then((accessToken) => {
