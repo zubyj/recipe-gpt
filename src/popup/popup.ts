@@ -80,8 +80,8 @@ function processCode(
     codeText: string,
 ): void {
 
-    const promptHeader = "Summarize the recipe. Keep it as short as possible. Return the ingredients followed by the instructions. If there is no recipe on the page, return 'no recipe found'";
-    const promptText = truncateString(codeText, 450);
+    const promptHeader = "Summarize the recipe. Keep it as short as possible. Return the ingredients and amount followed by the instructions. If there is no recipe on the page, return 'no recipe found'";
+    const promptText = truncateString(codeText, 300);
 
     document.getElementById('user-message')!.textContent = '';
     chatGPTProvider.generateAnswer({
