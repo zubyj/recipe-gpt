@@ -80,8 +80,13 @@ function processCode(
     codeText: string,
 ): void {
 
-    const promptHeader = "Summarize the recipe. Keep it as short as possible. Return the ingredients and amount followed by the instructions. If there is no recipe on the page, return 'no recipe found'";
-    const promptText = truncateString(codeText, 300);
+    const MAX_CHARACTERS = 15000;
+
+    const promptHeader = "Summarize the recipe. Keep it as short as possible. Return the ingredients and amount followed by the instructions. If there is no recipe on the page, return 'No recipe found.'";
+    let promptText = codeText.toString();
+    promptText = promptText.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, ""); // Remove punctuation.
+    promptText = truncateString(promptText, MAX_CHARACTERS);
+    console.log(promptText);
 
     document.getElementById('user-message')!.textContent = '';
     chatGPTProvider.generateAnswer({
