@@ -1,6 +1,6 @@
-# Contributing to Leetcode Explained
+# Contributing to Recipe GPT Explained
 
-Thank you for your interest in contributing to Leetcode Explained. This project is a Chrome extension that lets users view Leetcode solutions on leetcode.com and get the complexity of their code using ChatGPT.
+Thank you for your interest in contributing to Recipe GPT. This project is a Chrome extension that lets users summarize recipes on pages using ChatGPT.  
 
 ## How to Contribute
 
@@ -29,6 +29,6 @@ If you encounter any issues or bugs in the project, please report them using the
 
 ## Contact
 
-If you have any questions or need help with your contributions, please email me at zjdev@gmail.com.
+If you have any questions or need help with your contributions, please email me at zubydevelops@gmail.com.
 
 Thank you for your contributions!

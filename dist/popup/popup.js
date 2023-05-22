@@ -48,7 +48,7 @@ function displayErrorMessage(error) {
 function initAnalyzeCodeButton(chatGPTProvider) {
     const analyzeCodeButton = document.getElementById('analyze-button');
     analyzeCodeButton.onclick = () => __awaiter(this, void 0, void 0, function* () {
-        const codeText = yield getCodeFromActiveTab();
+        let codeText = yield getCodeFromActiveTab();
         if (codeText) {
             processCode(chatGPTProvider, codeText);
         }
@@ -61,7 +61,7 @@ function getCodeFromActiveTab() {
     return __awaiter(this, void 0, void 0, function* () {
         return new Promise((resolve) => {
             chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-                chrome.tabs.sendMessage(tabs[0].id, { type: 'getCode' }, (response) => {
+                chrome.tabs.sendMessage(tabs[0].id, { type: 'getRecipe' }, (response) => {
                     if (chrome.runtime.lastError) {
                         resolve(null);
                     }
@@ -74,19 +74,19 @@ function getCodeFromActiveTab() {
     });
 }
 function processCode(chatGPTProvider, codeText) {
+    const MAX_PROMPT_LENGTH = 4000;
+    const promptHeader = "Summarize the recipe. Keep it as short as possible. Return the ingredients followed by the instructions. If there is no recipe on the page, return 'no recipe found'";
+    const promptText = codeText.slice(0, Math.min(codeText.length, MAX_PROMPT_LENGTH));
     document.getElementById('user-message').textContent = '';
     chatGPTProvider.generateAnswer({
-        prompt: `Give me the time and space complexity of the following code, if it exists, in one short sentence.\n ${codeText}`,
+        prompt: `${promptHeader}\n ${promptText}`,
         onEvent: (event) => {
             if (event.type === 'answer' && event.data) {
-                displayTimeComplexity(event.data.text);
+                document.getElementById('user-message').append(event.data.text);
                 sendTextToContentScript(event.data.text);
             }
         },
     });
-}
-function displayTimeComplexity(timeComplexity) {
-    document.getElementById('user-message').append(timeComplexity);
 }
 function sendTextToContentScript(text) {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {

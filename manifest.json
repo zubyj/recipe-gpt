@@ -30,7 +30,7 @@
                 "dist/content-script/get-user-code.js"
             ],
             "matches": [
-                "https://leetcode.com/problems/*"
+                "<all_urls>"
             ]
         }
     ]

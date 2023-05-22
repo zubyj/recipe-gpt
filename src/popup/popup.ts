@@ -43,7 +43,7 @@ function displayErrorMessage(error: string): void {
 function initAnalyzeCodeButton(chatGPTProvider: ChatGPTProvider): void {
     const analyzeCodeButton = document.getElementById('analyze-button')!;
     analyzeCodeButton.onclick = async () => {
-        const codeText = await getCodeFromActiveTab();
+        let codeText = await getCodeFromActiveTab();
         if (codeText) {
             processCode(chatGPTProvider, codeText);
         } else {
@@ -57,7 +57,7 @@ async function getCodeFromActiveTab(): Promise<string | null> {
         chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
             chrome.tabs.sendMessage(
                 tabs[0].id!,
-                { type: 'getCode' },
+                { type: 'getRecipe' },
                 (response) => {
                     if (chrome.runtime.lastError) {
                         resolve(null);
@@ -74,21 +74,23 @@ function processCode(
     chatGPTProvider: ChatGPTProvider,
     codeText: string,
 ): void {
+
+    const MAX_PROMPT_LENGTH = 4000;
+    const promptHeader = "Summarize the recipe. Keep it as short as possible. Return the ingredients followed by the instructions. If there is no recipe on the page, return 'no recipe found'";
+    const promptText = codeText.slice(0, Math.min(codeText.length, MAX_PROMPT_LENGTH));
+
     document.getElementById('user-message')!.textContent = '';
     chatGPTProvider.generateAnswer({
-        prompt: `Give me the time and space complexity of the following code, if it exists, in one short sentence.\n ${codeText}`,
+        prompt: `${promptHeader}\n ${promptText}`,
         onEvent: (event: { type: string; data?: { text: string } }) => {
             if (event.type === 'answer' && event.data) {
-                displayTimeComplexity(event.data.text);
+                document.getElementById('user-message')!.append(event.data.text);
                 sendTextToContentScript(event.data.text);
             }
         },
+
+
     });
-}
-
-
-function displayTimeComplexity(timeComplexity: string): void {
-    document.getElementById('user-message')!.append(timeComplexity);
 }
 
 function sendTextToContentScript(text: string): void {
@@ -99,7 +101,7 @@ function sendTextToContentScript(text: string): void {
 
 function displayUnableToRetrieveCodeMessage(): void {
     document.getElementById('user-message')!.textContent =
-        'Unable to retrieve code. Please navigate to a Leetcode problem page and refresh the page.';
+        "Unable to get recipe. Please navigate to a recipe page and refresh the page.";
 }
 
 main();
