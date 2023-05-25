@@ -3,67 +3,70 @@ import {
     ChatGPTProvider,
 } from '../background/chatgpt/chatgpt.js';
 
+
 async function main(): Promise<void> {
     try {
         const accessToken = await getChatGPTAccessToken();
         if (accessToken) {
             initAnalyzeCodeButton(new ChatGPTProvider(accessToken));
-            if (accessToken) {
-                initAnalyzeCodeButton(new ChatGPTProvider(accessToken));
-                chrome.storage.local.get(['lastUserMessage'], function (result) {
-                    if (result.lastUserMessage) {
-                        document.getElementById('user-message')!.innerHTML = result.lastUserMessage.replace(/\n/g, '<br>'); // <-- Change here
-                    }
-                });
-                document.getElementById('analyze-button')!.classList.remove('hidden');
-            }
             document.getElementById('analyze-button')!.classList.remove('hidden');
-        } else {
+        }
+        else {
             displayLoginMessage();
         }
-    } catch (error) {
+    }
+    catch (error) {
         handleError(error as Error);
     }
 }
 
-let currentRecipeIndex = 0; // You can save and retrieve this from chrome.storage if you want it to persist between sessions
+let currentRecipeIndex = 0;  // Start at the first recipe.
 
 async function cycleRecipes(direction: number) {
-    const recipeArray = await getFromStorage('recipes');
-    if (recipeArray) {
-        currentRecipeIndex = (currentRecipeIndex + direction + recipeArray.length) % recipeArray.length;
-        displayRecipe(recipeArray[currentRecipeIndex].recipe);
+    try {
+        const result = await new Promise((resolve, reject) => {
+            chrome.storage.local.get(['recipes', 'currentRecipeIndex'], result => {
+                if (chrome.runtime.lastError) {
+                    reject(chrome.runtime.lastError);
+                } else {
+                    resolve(result);
+                }
+            });
+        });
+
+        const recipes = result.recipes;
+        currentRecipeIndex = result.currentRecipeIndex;
+
+        // Update currentRecipeIndex
+        currentRecipeIndex += direction;
+        if (currentRecipeIndex < 0) {
+            currentRecipeIndex = recipes.length - 1;  // Wrap to the last recipe.
+        } else if (currentRecipeIndex >= recipes.length) {
+            currentRecipeIndex = 0;  // Wrap to the first recipe.
+        }
+
+        // Update local storage
+        chrome.storage.local.set({ currentRecipeIndex: currentRecipeIndex });
+
+        // Update UI
+        document.getElementById('user-message')!.textContent = recipes[currentRecipeIndex].text;
+
+    } catch (error) {
+        console.error('Error:', error);
     }
 }
 
+document.getElementById('previous-button')!.onclick = () => cycleRecipes(-1);
+document.getElementById('next-button')!.onclick = () => cycleRecipes(1);
 
-async function deleteCurrentRecipe() {
-    let recipeArray = await getFromStorage('recipes');
-    if (recipeArray) {
-        recipeArray.splice(currentRecipeIndex, 1);
-        await setToStorage('recipes', recipeArray);
-        currentRecipeIndex = Math.min(currentRecipeIndex, recipeArray.length - 1);
-        displayRecipe(recipeArray[currentRecipeIndex].recipe);
-    }
-}
-
-function displayRecipe(recipe) {
-    document.getElementById('user-message')!.innerHTML = recipe.replace(/\n/g, '<br>');
-}
 
 document.getElementById('login-button')!.onclick = () => {
     chrome.runtime.sendMessage({ type: 'OPEN_LOGIN_PAGE' });
 };
 
-document.getElementById('previous-button')!.onclick = () => {
-    cycleRecipes(-1);
-};
-
-document.getElementById('next-button')!.onclick = () => {
-    cycleRecipes(1);
-};
-
-document.getElementById('delete-button')!.onclick = deleteCurrentRecipe;
+document.getElementById('delete-button')!.onclick = () => {
+    console.log('delete button clicked');
+}
 
 
 function handleError(error: Error): void {
@@ -121,36 +124,8 @@ function getEssentialText(text: string) {
     text = text.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, ""); // Remove punctuation.
     text = text.replace(/<img[^>]*>/g, ""); // Remove images. 
     text = text.length > MAX_LEN ? text.slice(0, MAX_LEN) : text // Truncate to max length.
-    console.log('new text', text);
+    // console.log('new text', text);
     return text
-}
-
-async function getRecipesFromStorage() {
-    return new Promise<any>((resolve) => {
-        chrome.storage.local.get(['recipes'], function (result) {
-            if (result.recipes) {
-                resolve(result.recipes);
-            } else {
-                resolve([]);
-            }
-        });
-    });
-}
-
-async function getFromStorage(key: string): Promise<any> {
-    return new Promise((resolve) => {
-        chrome.storage.local.get([key], function (result) {
-            resolve(result[key]);
-        });
-    });
-}
-
-async function setToStorage(key: string, value: any): Promise<void> {
-    return new Promise((resolve) => {
-        chrome.storage.local.set({ [key]: value }, function () {
-            resolve();
-        });
-    });
 }
 
 function processCode(
@@ -183,27 +158,18 @@ function processCode(
                 // Replace newlines with <br> for displaying in HTML
                 userMessageElement.innerHTML = fullText.replace(/\n/g, '<br>');
 
-                let recipeArray = await getRecipesFromStorage();
-                let existingRecipeIndex = recipeArray.findIndex((recipeObject) => recipeObject.url === currentURL);
-
-                if (existingRecipeIndex !== -1) {
-                    // Overwrite the existing recipe
-                    recipeArray[existingRecipeIndex] = {
+                // Save the recipe to local storage
+                chrome.storage.local.get(['recipes'], (result) => {
+                    let recipes = result.recipes || [];
+                    recipes.push({
                         url: currentURL,
-                        recipe: fullText,
-                    };
-                } else {
-                    // If the recipe does not exist, generate a new one
-                    recipeArray.push({
-                        url: currentURL,
-                        recipe: fullText,
+                        text: fullText,
+                        title: "Title Here...",  // Replace with the actual recipe title
                     });
-                }
-
-                // Save the updated recipes back to storage
-                await setToStorage('recipes', recipeArray);
-                displayRecipe(fullText);
+                    chrome.storage.local.set({ recipes: recipes, currentRecipeIndex: recipes.length - 1 });
+                });
             }
+
         },
     });
 }
