@@ -79,20 +79,27 @@ async function getCodeFromActiveTab(): Promise<string | null> {
     });
 }
 
-// This function will truncate a string to a certain length, if it exceeds that length
-function truncateString(str: string, maxLength: number) {
-    return str.length > maxLength ? str.slice(0, maxLength) : str;
+// get the essential text from the page before sending to gpt
+function getEssentialText(text: string) {
+    const MAX_LEN = 15000;
+    text = text.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, ""); // Remove punctuation.
+    text = text.length > MAX_LEN ? text.slice(0, MAX_LEN) : text // Truncate to max length.
+    text = text.replace(/<img[^>]*>/g, ""); // Remove images. 
+    console.log('new text', text);
+    return text
 }
 
 function processCode(
     chatGPTProvider: ChatGPTProvider,
     codeText: string,
 ): void {
-    const MAX_CHARACTERS = 16000;
-    const promptHeader = "Summarize the recipe. Return a bullet point list of the ingredients and measurements if they exist, followed by a numbered list of instructions. If there is no recipe on the page, return 'No recipe found.'";
-    let promptText = codeText.toString();
-    promptText = promptText.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, ""); // Remove punctuation.
-    promptText = truncateString(promptText, MAX_CHARACTERS);
+
+    const promptHeader = `
+    Summarize the recipe. Return the name of the recipe followed by a bullet point
+    list of the ingredients and measurements followed by a numbered list of instructions.
+    If there is no recipe on the page, return 'No recipe found .`
+
+    const promptText = getEssentialText(codeText.toString());
 
     const userMessageElement = document.getElementById('user-message')!;
     userMessageElement.innerText = '';
