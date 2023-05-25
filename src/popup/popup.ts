@@ -88,8 +88,47 @@ document.getElementById('login-button')!.onclick = () => {
     chrome.runtime.sendMessage({ type: 'OPEN_LOGIN_PAGE' });
 };
 
+async function deleteCurrentRecipe() {
+    try {
+        const result = await new Promise((resolve, reject) => {
+            chrome.storage.local.get(['recipes', 'currentRecipeIndex'], result => {
+                if (chrome.runtime.lastError) {
+                    reject(chrome.runtime.lastError);
+                } else {
+                    resolve(result);
+                }
+            });
+        });
+
+        let recipes = result.recipes;
+        const currentRecipeIndex = result.currentRecipeIndex;
+
+        // Remove the current recipe from the array.
+        recipes.splice(currentRecipeIndex, 1);
+
+        // If there are no recipes left, display a message.
+        if (recipes.length === 0) {
+            document.getElementById('user-message')!.textContent = "No recipes left.";
+        } else {
+            // If the deleted recipe was the last one in the array, update the currentRecipeIndex to be the new last recipe.
+            if (currentRecipeIndex === recipes.length) {
+                currentRecipeIndex -= 1;
+            }
+
+            // Update UI with the new current recipe.
+            document.getElementById('user-message')!.textContent = recipes[currentRecipeIndex].text;
+        }
+
+        // Update local storage with the new recipes array and the new currentRecipeIndex.
+        chrome.storage.local.set({ recipes: recipes, currentRecipeIndex: currentRecipeIndex });
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
+
 document.getElementById('delete-button')!.onclick = () => {
-    console.log('delete button clicked');
+    deleteCurrentRecipe();
 }
 
 
