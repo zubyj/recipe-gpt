@@ -79,42 +79,38 @@ function processCode(
     chatGPTProvider: ChatGPTProvider,
     codeText: string,
 ): void {
-
     const MAX_CHARACTERS = 16000;
-
-    const promptHeader = "Summarize the recipe. Return a bullet point list of the ingredients and measurements if they exist, followed by a numbered list of instructions. If there is no recipe on the page, return 'No recipe found.'";
+    const promptHeader = "Find the recipe in the following page and summarize it. Return a bullet point list of the ingredients and measurements followed by a numbered list of instructions. If theres no recipe on the page, let me know.";
     let promptText = codeText.toString();
     promptText = promptText.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, ""); // Remove punctuation.
     promptText = truncateString(promptText, MAX_CHARACTERS);
-    console.log(promptText);
+    console.log(`prompt text : ${promptText}`)
+
 
     const userMessageElement = document.getElementById('user-message')!;
     userMessageElement.innerText = '';
+
+    let fullText = '';
 
     chatGPTProvider.generateAnswer({
         prompt: `${promptHeader}\n ${promptText}`,
         onEvent: (event: { type: string; data?: { text: string } }) => {
             if (event.type === 'answer' && event.data) {
-                // Append the text as it is
+                fullText += event.data.text;  // accumulate the text
                 userMessageElement.innerText += event.data.text;
+            }
 
-                // If the text ends with '. ', ' - ', or ': ', append a line break
-                if (event.data.text.endsWith('. ') || event.data.text.endsWith(' - ') || event.data.text.endsWith(': ')) {
-                    userMessageElement.innerText += '\n';
-                }
+            // if (event.type === 'done') {
+            //     // Once the answer is complete, format it all at once
+            //     fullText = fullText.replace(/\. /g, '.\n'); // replace every '. ' with '.\n'
+            //     userMessageElement.innerText += fullText;
+            //     sendTextToContentScript(fullText);
+            // }
 
-                sendTextToContentScript(event.data.text);
+            if (event.type === 'done') {
+                userMessageElement.innerText += '\n\nDone!'
             }
         },
-    });
-}
-
-
-
-
-function sendTextToContentScript(text: string): void {
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-        chrome.tabs.sendMessage(tabs[0].id!, { type: 'addText', data: text });
     });
 }
 
