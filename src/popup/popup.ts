@@ -42,7 +42,7 @@ function handleError(error: Error): void {
 function displayLoginMessage(): void {
     document.getElementById('login-button')!.classList.remove('hidden');
     document.getElementById('user-message')!.textContent =
-        'Get your codes time & space complexity with ChatGPT login';
+        'Please login to ChatGPT to use this extension.';
 }
 
 function displayErrorMessage(error: string): void {
@@ -95,7 +95,7 @@ function processCode(
 ): void {
 
     const promptHeader = `
-    Summarize the recipe. Return the name of the recipe followed by 'Ingredients' with a bullet point
+    Summarize the recipe. Return 'Name followed by name of the recipe followed by 'Ingredients' with a bullet point
     list of the ingredients and measurements followed by 'Instructions' with a numbered list of instructions.
     If no recipe on the page, let me know.`
 
