@@ -80,25 +80,37 @@ function processCode(
     codeText: string,
 ): void {
 
-    const MAX_CHARACTERS = 15000;
+    const MAX_CHARACTERS = 16000;
 
-    const promptHeader = "Summarize the recipe. Keep it as short as possible. Return the ingredients and amount followed by the instructions. If there is no recipe on the page, return 'No recipe found.'";
+    const promptHeader = "Summarize the recipe. Return a bullet point list of the ingredients and measurements if they exist, followed by a numbered list of instructions. If there is no recipe on the page, return 'No recipe found.'";
     let promptText = codeText.toString();
     promptText = promptText.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, ""); // Remove punctuation.
     promptText = truncateString(promptText, MAX_CHARACTERS);
     console.log(promptText);
 
-    document.getElementById('user-message')!.textContent = '';
+    const userMessageElement = document.getElementById('user-message')!;
+    userMessageElement.innerText = '';
+
     chatGPTProvider.generateAnswer({
         prompt: `${promptHeader}\n ${promptText}`,
         onEvent: (event: { type: string; data?: { text: string } }) => {
             if (event.type === 'answer' && event.data) {
-                document.getElementById('user-message')!.append(event.data.text);
+                // Append the text as it is
+                userMessageElement.innerText += event.data.text;
+
+                // If the text ends with '. ', ' - ', or ': ', append a line break
+                if (event.data.text.endsWith('. ') || event.data.text.endsWith(' - ') || event.data.text.endsWith(': ')) {
+                    userMessageElement.innerText += '\n';
+                }
+
                 sendTextToContentScript(event.data.text);
             }
         },
     });
 }
+
+
+
 
 function sendTextToContentScript(text: string): void {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
