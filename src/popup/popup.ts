@@ -8,6 +8,15 @@ async function main(): Promise<void> {
         const accessToken = await getChatGPTAccessToken();
         if (accessToken) {
             initAnalyzeCodeButton(new ChatGPTProvider(accessToken));
+            if (accessToken) {
+                initAnalyzeCodeButton(new ChatGPTProvider(accessToken));
+                chrome.storage.local.get(['lastUserMessage'], function (result) {
+                    if (result.lastUserMessage) {
+                        document.getElementById('user-message')!.textContent = result.lastUserMessage;
+                    }
+                });
+                document.getElementById('analyze-button')!.classList.remove('hidden');
+            }
             document.getElementById('analyze-button')!.classList.remove('hidden');
         } else {
             displayLoginMessage();
@@ -99,6 +108,9 @@ function processCode(
 
             if (event.type === 'done') {
                 userMessageElement.innerText = fullText;
+                chrome.storage.local.set({ 'lastUserMessage': fullText }, () => {
+                    console.log('User message saved');
+                });
             }
         },
     });
