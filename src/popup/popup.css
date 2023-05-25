@@ -1,11 +1,11 @@
 body {
     background-color: #ffaa80;
-    font-family: 'Roboto', sans-serif;
+    font-family: 'Courier New', Courier, monospace;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    min-width: 400px;
+    min-width: 500px;
     margin: 0;
     padding: 0;
 }
@@ -24,8 +24,8 @@ body {
 
 #title {
     font-size: 1.5rem;
-    font-weight: 300;
-    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    font-weight: 200;
+    font-family: 'Courier New', Courier, monospace;
     text-align: center;
 }
 
