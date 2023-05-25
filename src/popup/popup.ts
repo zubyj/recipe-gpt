@@ -160,7 +160,7 @@ function processCode(
     const promptHeader = `
     Summarize the recipe. Return 'Name' followed by name of the recipe followed by 'Ingredients' with a bullet point
     list of the ingredients and measurements followed by 'Instructions' with a numbered list of instructions.
-    If no recipe on the page, let me know.`
+    If no recipe on the page, return 'No recipe found'.`
 
     const promptText = getEssentialText(codeText.toString());
 
@@ -179,6 +179,11 @@ function processCode(
             }
 
             if (event.type === 'done') {
+                // if text 'no recipe found' is returned, display error message
+                if (fullText.toLowerCase().includes('no recipe found')) {
+                    return;
+                }
+
                 // Replace newlines with <br> for displaying in HTML
                 userMessageElement.innerHTML = fullText.replace(/\n/g, '<br>');
 
