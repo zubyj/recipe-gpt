@@ -3,6 +3,28 @@ import {
     ChatGPTProvider,
 } from '../background/chatgpt/chatgpt.js';
 
+async function retrieveAndDisplayCurrentRecipe() {
+    try {
+        const result = await new Promise((resolve, reject) => {
+            chrome.storage.local.get(['recipes', 'currentRecipeIndex'], result => {
+                if (chrome.runtime.lastError) {
+                    reject(chrome.runtime.lastError);
+                } else {
+                    resolve(result);
+                }
+            });
+        });
+
+        const recipes = result.recipes;
+        currentRecipeIndex = result.currentRecipeIndex;
+
+        // Update UI with the last viewed recipe
+        document.getElementById('user-message')!.textContent = recipes[currentRecipeIndex].text;
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
 
 async function main(): Promise<void> {
     try {
@@ -14,6 +36,8 @@ async function main(): Promise<void> {
         else {
             displayLoginMessage();
         }
+        // Retrieve and display the last viewed recipe when the extension is opened
+        retrieveAndDisplayCurrentRecipe();
     }
     catch (error) {
         handleError(error as Error);
