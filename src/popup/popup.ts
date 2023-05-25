@@ -79,17 +79,14 @@ function processCode(
     chatGPTProvider: ChatGPTProvider,
     codeText: string,
 ): void {
-    const MAX_CHARACTERS = 15000;
-    const promptHeader = "Find the recipe in the following page and summarize it. Return a bullet point list of the ingredients and measurements followed by a numbered list of instructions. If theres no recipe on the page, let me know.";
+    const MAX_CHARACTERS = 16000;
+    const promptHeader = "Summarize the recipe. Return a bullet point list of the ingredients and measurements if they exist, followed by a numbered list of instructions. If there is no recipe on the page, return 'No recipe found.'";
     let promptText = codeText.toString();
     promptText = promptText.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, ""); // Remove punctuation.
     promptText = truncateString(promptText, MAX_CHARACTERS);
-    console.log(`prompt text : ${promptText}`)
-
 
     const userMessageElement = document.getElementById('user-message')!;
     userMessageElement.innerText = '';
-
     let fullText = '';
 
     chatGPTProvider.generateAnswer({
@@ -99,41 +96,11 @@ function processCode(
                 fullText += event.data.text;  // accumulate the text
                 userMessageElement.innerText += event.data.text;
             }
-            if (event.type === 'done') {
-                const regex = /^[0-9]+. /; // matches numbered instructions
-                const regexBullet = /^- /; // matches bullet points
-                let lines = fullText.split('\n');
-                let formattedLines = lines.map(line => {
-                    if (regex.test(line)) { // if line starts with a number followed by a dot and a space
-                        return `<div class="item"><input type="checkbox" class="checkbox"><span>${line}</span></div>`;
-                    } else if (regexBullet.test(line)) { // if line starts with a bullet point
-                        return `<div>${line}</div>`;
-                    } else if (line.toLowerCase().includes("instructions:")) { // if line contains "Instructions:"
-                        return `<div>${line}</div><br>`;
-                    } else {
-                        return line;
-                    }
-                });
 
-                fullText = formattedLines.join('\n');
-                userMessageElement.innerHTML = fullText.replace(/\. /g, '.\n'); // replace every '. ' with '.\n'
-                addCheckboxEventListeners();
+            if (event.type === 'done') {
+                userMessageElement.innerText = fullText;
             }
         },
-    });
-}
-
-function addCheckboxEventListeners() {
-    let checkboxes = document.querySelectorAll('.checkbox');
-
-    checkboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', function () {
-            if (this.checked) {
-                this.nextElementSibling.style.textDecoration = "line-through";
-            } else {
-                this.nextElementSibling.style.textDecoration = "none";
-            }
-        });
     });
 }
 

@@ -27,7 +27,7 @@
         {
             "js": [
                 "dist/content-script/get-gpt-access-token.js",
-                "dist/content-script/get-user-code.js"
+                "dist/content-script/read-page-text.js"
             ],
             "matches": [
                 "<all_urls>"
