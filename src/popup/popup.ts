@@ -126,7 +126,7 @@ function processCode(
 
 function displayUnableToRetrieveCodeMessage(): void {
     document.getElementById('user-message')!.textContent =
-        "Unable to get recipe. Please navigate to a recipe page and refresh the page.";
+        "Unable to find recipe on current page. Please refresh the page or try another page.";
 }
 
 main();
