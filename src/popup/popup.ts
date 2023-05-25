@@ -12,7 +12,7 @@ async function main(): Promise<void> {
                 initAnalyzeCodeButton(new ChatGPTProvider(accessToken));
                 chrome.storage.local.get(['lastUserMessage'], function (result) {
                     if (result.lastUserMessage) {
-                        document.getElementById('user-message')!.textContent = result.lastUserMessage;
+                        document.getElementById('user-message')!.innerHTML = result.lastUserMessage.replace(/\n/g, '<br>'); // <-- Change here
                     }
                 });
                 document.getElementById('analyze-button')!.classList.remove('hidden');
@@ -83,8 +83,8 @@ async function getCodeFromActiveTab(): Promise<string | null> {
 function getEssentialText(text: string) {
     const MAX_LEN = 15000;
     text = text.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, ""); // Remove punctuation.
-    text = text.length > MAX_LEN ? text.slice(0, MAX_LEN) : text // Truncate to max length.
     text = text.replace(/<img[^>]*>/g, ""); // Remove images. 
+    text = text.length > MAX_LEN ? text.slice(0, MAX_LEN) : text // Truncate to max length.
     console.log('new text', text);
     return text
 }
@@ -95,14 +95,14 @@ function processCode(
 ): void {
 
     const promptHeader = `
-    Summarize the recipe. Return the name of the recipe followed by a bullet point
-    list of the ingredients and measurements followed by a numbered list of instructions.
-    If there is no recipe on the page, return 'No recipe found .`
+    Summarize the recipe. Return the name of the recipe followed by 'Ingredients' with a bullet point
+    list of the ingredients and measurements followed by 'Instructions' with a numbered list of instructions.
+    If no recipe on the page, let me know.`
 
     const promptText = getEssentialText(codeText.toString());
 
     const userMessageElement = document.getElementById('user-message')!;
-    userMessageElement.innerText = '';
+    userMessageElement.innerHTML = ''; // <-- Change here
     let fullText = '';
 
     chatGPTProvider.generateAnswer({
@@ -110,11 +110,12 @@ function processCode(
         onEvent: (event: { type: string; data?: { text: string } }) => {
             if (event.type === 'answer' && event.data) {
                 fullText += event.data.text;  // accumulate the text
-                userMessageElement.innerText += event.data.text;
+                userMessageElement.innerHTML += event.data.text.replace(/\n/g, '<br>'); // <-- Change here
             }
 
             if (event.type === 'done') {
-                userMessageElement.innerText = fullText;
+                // Replace newlines with <br> for displaying in HTML
+                userMessageElement.innerHTML = fullText.replace(/\n/g, '<br>');
                 chrome.storage.local.set({ 'lastUserMessage': fullText }, () => {
                     console.log('User message saved');
                 });
