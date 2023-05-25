@@ -23,9 +23,9 @@ body {
 }
 
 #title {
-    font-size: 1.5rem;
+    font-size: 1.6rem;
     font-weight: 200;
-    font-family: 'Courier New', Courier, monospace;
+    font-family: 'Roboto', sans-serif;
     text-align: center;
 }
 
@@ -64,6 +64,12 @@ body {
 
 .material-button:hover {
     background-color: #ff3300;
+}
+
+#button-container {
+    display: flex;
+    justify-content: space-between;
+    width: 50vw;
 }
 
 #user-message {

@@ -26,9 +26,45 @@ async function main(): Promise<void> {
     }
 }
 
+let currentRecipeIndex = 0; // You can save and retrieve this from chrome.storage if you want it to persist between sessions
+
+async function cycleRecipes(direction: number) {
+    const recipeArray = await getFromStorage('recipes');
+    if (recipeArray) {
+        currentRecipeIndex = (currentRecipeIndex + direction + recipeArray.length) % recipeArray.length;
+        displayRecipe(recipeArray[currentRecipeIndex].recipe);
+    }
+}
+
+
+async function deleteCurrentRecipe() {
+    let recipeArray = await getFromStorage('recipes');
+    if (recipeArray) {
+        recipeArray.splice(currentRecipeIndex, 1);
+        await setToStorage('recipes', recipeArray);
+        currentRecipeIndex = Math.min(currentRecipeIndex, recipeArray.length - 1);
+        displayRecipe(recipeArray[currentRecipeIndex].recipe);
+    }
+}
+
+function displayRecipe(recipe) {
+    document.getElementById('user-message')!.innerHTML = recipe.replace(/\n/g, '<br>');
+}
+
 document.getElementById('login-button')!.onclick = () => {
     chrome.runtime.sendMessage({ type: 'OPEN_LOGIN_PAGE' });
 };
+
+document.getElementById('previous-button')!.onclick = () => {
+    cycleRecipes(-1);
+};
+
+document.getElementById('next-button')!.onclick = () => {
+    cycleRecipes(1);
+};
+
+document.getElementById('delete-button')!.onclick = deleteCurrentRecipe;
+
 
 function handleError(error: Error): void {
     if (error.message === 'UNAUTHORIZED' || error.message === 'CLOUDFLARE') {
@@ -89,6 +125,34 @@ function getEssentialText(text: string) {
     return text
 }
 
+async function getRecipesFromStorage() {
+    return new Promise<any>((resolve) => {
+        chrome.storage.local.get(['recipes'], function (result) {
+            if (result.recipes) {
+                resolve(result.recipes);
+            } else {
+                resolve([]);
+            }
+        });
+    });
+}
+
+async function getFromStorage(key: string): Promise<any> {
+    return new Promise((resolve) => {
+        chrome.storage.local.get([key], function (result) {
+            resolve(result[key]);
+        });
+    });
+}
+
+async function setToStorage(key: string, value: any): Promise<void> {
+    return new Promise((resolve) => {
+        chrome.storage.local.set({ [key]: value }, function () {
+            resolve();
+        });
+    });
+}
+
 function processCode(
     chatGPTProvider: ChatGPTProvider,
     codeText: string,
@@ -102,12 +166,14 @@ function processCode(
     const promptText = getEssentialText(codeText.toString());
 
     const userMessageElement = document.getElementById('user-message')!;
-    userMessageElement.innerHTML = ''; // <-- Change here
+    userMessageElement.innerHTML = '';
     let fullText = '';
+
+    const currentURL = "the current URL"; // Retrieve the current URL using the chrome.tabs API
 
     chatGPTProvider.generateAnswer({
         prompt: `${promptHeader}\n ${promptText}`,
-        onEvent: (event: { type: string; data?: { text: string } }) => {
+        onEvent: async (event: { type: string; data?: { text: string } }) => {
             if (event.type === 'answer' && event.data) {
                 fullText += event.data.text;  // accumulate the text
                 userMessageElement.innerHTML += event.data.text.replace(/\n/g, '<br>'); // <-- Change here
@@ -116,9 +182,27 @@ function processCode(
             if (event.type === 'done') {
                 // Replace newlines with <br> for displaying in HTML
                 userMessageElement.innerHTML = fullText.replace(/\n/g, '<br>');
-                chrome.storage.local.set({ 'lastUserMessage': fullText }, () => {
-                    console.log('User message saved');
-                });
+
+                let recipeArray = await getRecipesFromStorage();
+                let existingRecipeIndex = recipeArray.findIndex((recipeObject) => recipeObject.url === currentURL);
+
+                if (existingRecipeIndex !== -1) {
+                    // Overwrite the existing recipe
+                    recipeArray[existingRecipeIndex] = {
+                        url: currentURL,
+                        recipe: fullText,
+                    };
+                } else {
+                    // If the recipe does not exist, generate a new one
+                    recipeArray.push({
+                        url: currentURL,
+                        recipe: fullText,
+                    });
+                }
+
+                // Save the updated recipes back to storage
+                await setToStorage('recipes', recipeArray);
+                displayRecipe(fullText);
             }
         },
     });
