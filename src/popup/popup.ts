@@ -3,6 +3,24 @@ import {
     ChatGPTProvider,
 } from '../background/chatgpt/chatgpt.js';
 
+async function main(): Promise<void> {
+    try {
+        const accessToken = await getChatGPTAccessToken();
+        if (accessToken) {
+            initAnalyzeCodeButton(new ChatGPTProvider(accessToken));
+            document.getElementById('analyze-button')!.classList.remove('hidden');
+        }
+        else {
+            displayLoginMessage();
+        }
+        // Retrieve and display the last viewed recipe when the extension is opened
+        retrieveAndDisplayCurrentRecipe();
+    }
+    catch (error) {
+        handleError(error as Error);
+    }
+}
+
 async function retrieveAndDisplayCurrentRecipe() {
     try {
         const result = await new Promise((resolve, reject) => {
@@ -20,33 +38,14 @@ async function retrieveAndDisplayCurrentRecipe() {
 
         // Update UI with the last viewed recipe
         if (!recipes || recipes.length === 0) {
-            document.getElementById('user-message')!.textContent = "No recipes added.";
+            document.getElementById('recipes')!.textContent = "No recipes added.";
         }
         else {
 
-            document.getElementById('user-message')!.textContent = recipes[currentRecipeIndex].text;
+            document.getElementById('recipes')!.textContent = recipes[currentRecipeIndex].text;
         }
     } catch (error) {
         console.error('Error:', error);
-    }
-}
-
-
-async function main(): Promise<void> {
-    try {
-        const accessToken = await getChatGPTAccessToken();
-        if (accessToken) {
-            initAnalyzeCodeButton(new ChatGPTProvider(accessToken));
-            document.getElementById('analyze-button')!.classList.remove('hidden');
-        }
-        else {
-            displayLoginMessage();
-        }
-        // Retrieve and display the last viewed recipe when the extension is opened
-        retrieveAndDisplayCurrentRecipe();
-    }
-    catch (error) {
-        handleError(error as Error);
     }
 }
 
@@ -79,7 +78,12 @@ async function cycleRecipes(direction: number) {
         chrome.storage.local.set({ currentRecipeIndex: currentRecipeIndex });
 
         // Update UI
-        document.getElementById('user-message')!.textContent = recipes[currentRecipeIndex].text;
+        if (recipes && recipes.length > 0) {
+            document.getElementById('recipes')!.textContent = recipes[currentRecipeIndex].text;
+        }
+        else {
+            document.getElementById('recipes')!.textContent = "No recipes added.";
+        }
 
     } catch (error) {
         console.error('Error:', error);
@@ -107,14 +111,14 @@ async function deleteCurrentRecipe() {
         });
 
         let recipes = result.recipes;
-        const currentRecipeIndex = result.currentRecipeIndex;
+        let currentRecipeIndex = result.currentRecipeIndex;
 
         // Remove the current recipe from the array.
         recipes.splice(currentRecipeIndex, 1);
 
         // If there are no recipes left, display a message.
         if (recipes.length === 0) {
-            document.getElementById('user-message')!.textContent = "No recipes left.";
+            document.getElementById('user-message')!.textContent = "No recipes added.";
         } else {
             // If the deleted recipe was the last one in the array, update the currentRecipeIndex to be the new last recipe.
             if (currentRecipeIndex === recipes.length) {
@@ -122,7 +126,12 @@ async function deleteCurrentRecipe() {
             }
 
             // Update UI with the new current recipe.
-            document.getElementById('user-message')!.textContent = recipes[currentRecipeIndex].text;
+            if (recipes && recipes.length > 0) {
+                document.getElementById('user-message')!.textContent = recipes[currentRecipeIndex].text;
+            }
+            else {
+                document.getElementById('user-message')!.textContent = "No recipes added.";
+            }
         }
 
         // Update local storage with the new recipes array and the new currentRecipeIndex.
@@ -136,7 +145,6 @@ async function deleteCurrentRecipe() {
 document.getElementById('delete-button')!.onclick = () => {
     deleteCurrentRecipe();
 }
-
 
 function handleError(error: Error): void {
     if (error.message === 'UNAUTHORIZED' || error.message === 'CLOUDFLARE') {
@@ -224,18 +232,17 @@ function processCode(
         onEvent: async (event: { type: string; data?: { text: string } }) => {
             if (event.type === 'answer' && event.data) {
                 fullText += event.data.text;  // accumulate the text
-                userMessageElement.innerHTML += event.data.text.replace(/\n/g, '<br>'); // <-- Change here
+                userMessageElement.innerHTML = fullText.replace(/\n/g, '<br>');
             }
 
             if (event.type === 'done') {
                 // if text 'no recipe found' is returned, display error message
-                if (fullText.toLowerCase().includes('no recipe found')) {
+                if (fullText.length < 25) {
                     return;
                 }
 
                 // Replace newlines with <br> for displaying in HTML
-                userMessageElement.innerHTML = fullText.replace(/\n/g, '<br>');
-
+                userMessageElement.innerText = ''
                 // Save the recipe to local storage
                 chrome.storage.local.get(['recipes'], (result) => {
                     let recipes = result.recipes || [];
