@@ -42,12 +42,13 @@ async function retrieveAndDisplayCurrentRecipe() {
         }
         else {
 
-            document.getElementById('recipes')!.textContent = recipes[currentRecipeIndex].text;
+            document.getElementById('recipes')!.innerHTML = recipes[currentRecipeIndex].text;
         }
     } catch (error) {
         console.error('Error:', error);
     }
 }
+
 
 let currentRecipeIndex = 0;  // Start at the first recipe.
 
@@ -79,7 +80,8 @@ async function cycleRecipes(direction: number) {
 
         // Update UI
         if (recipes && recipes.length > 0) {
-            document.getElementById('recipes')!.textContent = recipes[currentRecipeIndex].text;
+            document.getElementById('recipes')!.innerHTML = recipes[currentRecipeIndex].text;
+
         }
         else {
             document.getElementById('recipes')!.textContent = "No recipes added.";
@@ -92,6 +94,16 @@ async function cycleRecipes(direction: number) {
 
 document.getElementById('previous-button')!.onclick = () => cycleRecipes(-1);
 document.getElementById('next-button')!.onclick = () => cycleRecipes(1);
+
+document.getElementById('toggle-recipes-btn')!.onclick = () => {
+    const recipesElement = document.getElementById('recipes');
+    const recipesToggle = document.getElementById('recipes-toggle');
+    if (recipesToggle.checked) {
+        recipesElement.classList.remove('hidden');
+    } else {
+        recipesElement.classList.add('hidden');
+    }
+};
 
 
 document.getElementById('login-button')!.onclick = () => {
@@ -124,18 +136,11 @@ async function deleteCurrentRecipe() {
             if (currentRecipeIndex === recipes.length) {
                 currentRecipeIndex -= 1;
             }
-
-            // Update UI with the new current recipe.
-            if (recipes && recipes.length > 0) {
-                document.getElementById('user-message')!.textContent = recipes[currentRecipeIndex].text;
-            }
-            else {
-                document.getElementById('user-message')!.textContent = "No recipes added.";
-            }
         }
 
         // Update local storage with the new recipes array and the new currentRecipeIndex.
         chrome.storage.local.set({ recipes: recipes, currentRecipeIndex: currentRecipeIndex });
+        cycleRecipes(1);
     } catch (error) {
         console.error('Error:', error);
     }
@@ -240,6 +245,9 @@ function processCode(
                 if (fullText.length < 25) {
                     return;
                 }
+
+                document.getElementById('recipes')!.classList.remove('hidden');
+                document.getElementById('button-container')!.classList.remove('hidden');
 
                 // Replace newlines with <br> for displaying in HTML
                 userMessageElement.innerText = ''

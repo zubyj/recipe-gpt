@@ -15,11 +15,16 @@
     <button id="login-button" class="material-button hidden">
         Open ChatGPT website
     </button>
-    <div id="chat-section">
+    <div id="main-buttons">
         <button id="analyze-button" class="material-button hidden">
             <span id="buttonText">
                 Get the recipe
             </span>
+        </button>
+        <button id="toggle-recipes-btn" class="toggle-switch">
+            <input type="checkbox" id="recipes-toggle" class="toggle-input" checked>
+            <label for="recipes-toggle" class="toggle-label"></label>
+            Saved recipes
         </button>
     </div>
     <div id="button-container">
@@ -33,8 +38,9 @@
             <img src="../../assets/images/next-icon.png" width="30" alt="next" />
         </button>
     </div>
-    <p id="user-message"></p>
-    <p id="recipes"></p>
+    <p id="user-message" class="message hidden"></p>
+
+    <p id="recipes" class="message"></p>
 </body>
 
 </html>
