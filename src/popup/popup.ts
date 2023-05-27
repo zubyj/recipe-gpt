@@ -192,12 +192,14 @@ function getRecipeFromGPT(
 ): void {
 
     const promptHeader = `
-    Summarize the recipe.
-    If no recipe on the page, return 'No recipe found'. 
+    Summarize the recipe in the following text.
+    If there's no recipe in the text, return 'No recipe found'. 
     Else, do the following:
     Return 'Name' followed by name of the recipe followed by 'Ingredients' 
     with a bullet point list of the ingredients and measurements 
     followed by 'Instructions' with a numbered list of instructions.
+    Don't return anything else. 
+    Keep the answer as short as possible.
     `
 
     const promptText = getEssentialText(codeText.toString());
@@ -206,7 +208,9 @@ function getRecipeFromGPT(
     let fullText = '';
     const currentURL = "the current URL"; // Retrieve the current URL using the chrome.tabs API
     message!.classList.remove('hidden');
-    document.getElementById('button-container')!.classList.add('hidden');
+
+    let recipes = document.getElementById('recipes');
+    recipes!.classList.add('hidden');
 
     chatGPTProvider.generateAnswer({
         prompt: `${promptHeader}\n ${promptText}`,
@@ -218,6 +222,7 @@ function getRecipeFromGPT(
 
             if (event.type === 'done') {
                 message!.classList.add('hidden');
+                recipes!.classList.remove('hidden');
                 if (fullText.length < 25) {
                     return;
                 }
