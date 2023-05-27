@@ -17,12 +17,11 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 1rem;
 }
 
 /* Icon style */
 #icon {
-    margin-right: 1rem;
+    margin-right: 2rem;
 }
 
 /* Title style */
