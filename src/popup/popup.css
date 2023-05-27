@@ -2,11 +2,8 @@ body {
     margin: 0;
     padding: 0;
     background-color: #F5F5F5;
-    /* Light grey for a clean look */
-    font-family: 'Courier New', Courier, monospace'
-
-        /* A more readable font for the body text */
-        color: #333333;
+    font-family: 'Courier New', 'Courier', 'monospace';
+    color: #333333;
     /* Dark gray color for better readability */
     display: flex;
     flex-direction: column;
@@ -41,6 +38,16 @@ body {
 #main-buttons {
     margin: 1rem 0;
     text-align: center;
+}
+
+#get-recipe-btn {
+    display: flex;
+    flex-direction: row;
+}
+
+#buttonText {
+    margin-left: 1rem;
+    font-size: 1rem;
 }
 
 /* Material button style */
