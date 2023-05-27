@@ -73,7 +73,6 @@ async function retrieveAndDisplayCurrentRecipe() {
             document.getElementById('recipes')!.textContent = "No recipes added.";
         }
         else {
-
             document.getElementById('recipes')!.innerHTML = recipes[currentRecipeIndex].text;
         }
     } catch (error) {
@@ -207,6 +206,7 @@ function getRecipeFromGPT(
     let fullText = '';
     const currentURL = "the current URL"; // Retrieve the current URL using the chrome.tabs API
     message!.classList.remove('hidden');
+    document.getElementById('button-container')!.classList.add('hidden');
 
     chatGPTProvider.generateAnswer({
         prompt: `${promptHeader}\n ${promptText}`,
@@ -226,7 +226,7 @@ function getRecipeFromGPT(
                     let recipes = result.recipes || [];
                     recipes.push({
                         url: currentURL,
-                        text: message!.innerText,
+                        text: message?.innerHTML,
                         title: "Title Here...",  // Replace with the actual recipe title
                     });
                     chrome.storage.local.set({ recipes: recipes, currentRecipeIndex: recipes.length - 1 });
