@@ -3,20 +3,52 @@ import {
     ChatGPTProvider,
 } from '../background/chatgpt/chatgpt.js';
 
+let currentRecipeIndex = 0;
+let message = document.getElementById('message');
+
+function handleError(error: Error): void {
+    if (error.message === 'UNAUTHORIZED' || error.message === 'CLOUDFLARE') {
+        displayLoginMessage();
+    } else {
+        console.error('Error:', error);
+        message!.textContent = error.message;
+    }
+}
+
+function displayLoginMessage(): void {
+    document.getElementById('login-button')!.classList.remove('hidden');
+    message!.textContent = 'Please login to ChatGPT to use this extension.';
+}
+
+/* 
+    Attach onclick events to buttons
+*/
+function initGetRecipeBtn(chatGPTProvider: ChatGPTProvider): void {
+    const getRecipeBtn = document.getElementById('get-recipe-btn')!;
+    getRecipeBtn.onclick = async () => {
+        let codeText = await getCodeFromActiveTab();
+        if (codeText) {
+            getRecipeFromGPT(chatGPTProvider, codeText);
+        } else {
+            message!.textContent = "Unable to find recipe on current page. Please refresh the page or try another page.";
+        }
+    };
+}
+
+
 async function main(): Promise<void> {
     try {
         const accessToken = await getChatGPTAccessToken();
         if (accessToken) {
-            initAnalyzeCodeButton(new ChatGPTProvider(accessToken));
-            document.getElementById('analyze-button')!.classList.remove('hidden');
-        }
-        else {
+            initGetRecipeBtn(new ChatGPTProvider(accessToken));
+            const getRecipeBtn = document.getElementById('get-recipe-btn');
+            getRecipeBtn?.classList.remove('hidden');
+        } else {
             displayLoginMessage();
         }
-        // Retrieve and display the last viewed recipe when the extension is opened
+
         retrieveAndDisplayCurrentRecipe();
-    }
-    catch (error) {
+    } catch (error) {
         handleError(error as Error);
     }
 }
@@ -49,8 +81,6 @@ async function retrieveAndDisplayCurrentRecipe() {
     }
 }
 
-
-let currentRecipeIndex = 0;  // Start at the first recipe.
 
 async function cycleRecipes(direction: number) {
     try {
@@ -92,24 +122,6 @@ async function cycleRecipes(direction: number) {
     }
 }
 
-document.getElementById('previous-button')!.onclick = () => cycleRecipes(-1);
-document.getElementById('next-button')!.onclick = () => cycleRecipes(1);
-
-document.getElementById('toggle-recipes-btn')!.onclick = () => {
-    const recipesElement = document.getElementById('recipes');
-    const recipesToggle = document.getElementById('recipes-toggle');
-    if (recipesToggle.checked) {
-        recipesElement.classList.remove('hidden');
-    } else {
-        recipesElement.classList.add('hidden');
-    }
-};
-
-
-document.getElementById('login-button')!.onclick = () => {
-    chrome.runtime.sendMessage({ type: 'OPEN_LOGIN_PAGE' });
-};
-
 async function deleteCurrentRecipe() {
     try {
         const result = await new Promise((resolve, reject) => {
@@ -130,7 +142,7 @@ async function deleteCurrentRecipe() {
 
         // If there are no recipes left, display a message.
         if (recipes.length === 0) {
-            document.getElementById('user-message')!.textContent = "No recipes added.";
+            message!.textContent = "No recipes added.";
         } else {
             // If the deleted recipe was the last one in the array, update the currentRecipeIndex to be the new last recipe.
             if (currentRecipeIndex === recipes.length) {
@@ -146,41 +158,6 @@ async function deleteCurrentRecipe() {
     }
 }
 
-
-document.getElementById('delete-button')!.onclick = () => {
-    deleteCurrentRecipe();
-}
-
-function handleError(error: Error): void {
-    if (error.message === 'UNAUTHORIZED' || error.message === 'CLOUDFLARE') {
-        displayLoginMessage();
-    } else {
-        console.error('Error:', error);
-        displayErrorMessage(error.message);
-    }
-}
-
-function displayLoginMessage(): void {
-    document.getElementById('login-button')!.classList.remove('hidden');
-    document.getElementById('user-message')!.textContent =
-        'Please login to ChatGPT to use this extension.';
-}
-
-function displayErrorMessage(error: string): void {
-    document.getElementById('user-message')!.textContent = error;
-}
-
-function initAnalyzeCodeButton(chatGPTProvider: ChatGPTProvider): void {
-    const analyzeCodeButton = document.getElementById('analyze-button')!;
-    analyzeCodeButton.onclick = async () => {
-        let codeText = await getCodeFromActiveTab();
-        if (codeText) {
-            processCode(chatGPTProvider, codeText);
-        } else {
-            displayUnableToRetrieveCodeMessage();
-        }
-    };
-}
 
 async function getCodeFromActiveTab(): Promise<string | null> {
     return new Promise<string | null>((resolve) => {
@@ -206,11 +183,11 @@ function getEssentialText(text: string) {
     text = text.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, ""); // Remove punctuation.
     text = text.replace(/<img[^>]*>/g, ""); // Remove images. 
     text = text.length > MAX_LEN ? text.slice(0, MAX_LEN) : text // Truncate to max length.
-    // console.log('new text', text);
     return text
 }
 
-function processCode(
+
+function getRecipeFromGPT(
     chatGPTProvider: ChatGPTProvider,
     codeText: string,
 ): void {
@@ -225,51 +202,61 @@ function processCode(
     `
 
     const promptText = getEssentialText(codeText.toString());
+    message!.innerHTML = '';
 
-    const userMessageElement = document.getElementById('user-message')!;
-    userMessageElement.innerHTML = '';
     let fullText = '';
-
     const currentURL = "the current URL"; // Retrieve the current URL using the chrome.tabs API
+    message!.classList.remove('hidden');
 
     chatGPTProvider.generateAnswer({
         prompt: `${promptHeader}\n ${promptText}`,
         onEvent: async (event: { type: string; data?: { text: string } }) => {
             if (event.type === 'answer' && event.data) {
-                fullText += event.data.text;  // accumulate the text
-                userMessageElement.innerHTML = fullText.replace(/\n/g, '<br>');
+                fullText += event.data.text;
+                message!.innerHTML = fullText.replace(/\n/g, '<br>');
             }
 
             if (event.type === 'done') {
-                // if text 'no recipe found' is returned, display error message
+                message!.classList.add('hidden');
                 if (fullText.length < 25) {
                     return;
                 }
-
-                document.getElementById('recipes')!.classList.remove('hidden');
-                document.getElementById('button-container')!.classList.remove('hidden');
-
-                // Replace newlines with <br> for displaying in HTML
-                userMessageElement.innerText = ''
                 // Save the recipe to local storage
                 chrome.storage.local.get(['recipes'], (result) => {
                     let recipes = result.recipes || [];
                     recipes.push({
                         url: currentURL,
-                        text: fullText,
+                        text: message!.innerText,
                         title: "Title Here...",  // Replace with the actual recipe title
                     });
                     chrome.storage.local.set({ recipes: recipes, currentRecipeIndex: recipes.length - 1 });
+                    retrieveAndDisplayCurrentRecipe()
                 });
             }
-
         },
     });
 }
 
-function displayUnableToRetrieveCodeMessage(): void {
-    document.getElementById('user-message')!.textContent =
-        "Unable to find recipe on current page. Please refresh the page or try another page.";
+const previousButton = document.getElementById('previous-button');
+if (previousButton) {
+    previousButton.onclick = () => cycleRecipes(-1);
+}
+
+const nextButton = document.getElementById('next-button');
+if (nextButton) {
+    nextButton.onclick = () => cycleRecipes(1);
+}
+
+const loginButton = document.getElementById('login-button');
+if (loginButton) {
+    loginButton.onclick = () => {
+        chrome.runtime.sendMessage({ type: 'OPEN_LOGIN_PAGE' });
+    };
+}
+
+const deleteButton = document.getElementById('delete-button');
+if (deleteButton) {
+    deleteButton.onclick = deleteCurrentRecipe;
 }
 
 main();
