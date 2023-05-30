@@ -77,6 +77,16 @@ async function retrieveAndDisplayCurrentRecipe() {
             console.log('title ' + recipes[currentRecipeIndex].title);
             savedRecipes!.innerHTML = recipes[currentRecipeIndex].text;
         }
+
+        // Populate the dropdown with recipe titles
+        const recipeSelector = document.getElementById('recipe-selector');
+        recipes.forEach((recipe, index) => {
+            const option = document.createElement('option');
+            option.text = recipe.title;
+            option.value = index.toString();
+            if (index === currentRecipeIndex) option.selected = true;
+            recipeSelector.appendChild(option);
+        });
     } catch (error) {
         console.error('Error:', error);
     }
@@ -109,13 +119,16 @@ async function cycleRecipes(direction: number) {
         // Update local storage
         chrome.storage.local.set({ currentRecipeIndex: currentRecipeIndex });
 
+        const recipeSelector = document.getElementById('recipe-selector');
+        recipeSelector.selectedIndex = currentRecipeIndex;
+
         // Update UI
         if (recipes && recipes.length > 0) {
-            document.getElementById('recipes')!.innerHTML = recipes[currentRecipeIndex].text;
+            savedRecipes!.innerHTML = recipes[currentRecipeIndex].text;
 
         }
         else {
-            document.getElementById('recipes')!.textContent = "No recipes added.";
+            savedRecipes!.textContent = "No recipes added.";
         }
 
     } catch (error) {
@@ -210,8 +223,7 @@ function getRecipeFromGPT(
     const currentURL = "the current URL"; // Retrieve the current URL using the chrome.tabs API
     message!.classList.remove('hidden');
 
-    let recipes = document.getElementById('recipes');
-    recipes!.classList.add('hidden');
+    savedRecipes!.classList.add('hidden');
 
     chatGPTProvider.generateAnswer({
         prompt: `${promptHeader}\n ${promptText}`,
@@ -223,7 +235,7 @@ function getRecipeFromGPT(
 
             if (event.type === 'done') {
                 message!.classList.add('hidden');
-                recipes!.classList.remove('hidden');
+                savedRecipes!.classList.remove('hidden');
                 if (fullText.length < 25) {
                     errorMessage!.textContent = 'No recipe found on the page.';
                     return;
@@ -231,59 +243,70 @@ function getRecipeFromGPT(
                 // Save the recipe to local storage
                 chrome.storage.local.get(['recipes'], (result) => {
                     let recipes = result.recipes || [];
-                    recipes.push({
-                        url: currentURL,
-                        text: message?.innerHTML,
-                        title: "Title Here...",  // Replace with the actual recipe title
+
+                    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+                        const title = tabs[0].title;
+                        recipes.push({
+                            url: currentURL,
+                            text: message?.innerHTML,
+                            title: title,  // Replace with the actual recipe title
+                        });
+                        chrome.storage.local.set({ recipes: recipes, currentRecipeIndex: recipes.length - 1 });
+                        retrieveAndDisplayCurrentRecipe()
                     });
-                    chrome.storage.local.set({ recipes: recipes, currentRecipeIndex: recipes.length - 1 });
-                    retrieveAndDisplayCurrentRecipe()
-                });
+                }
+                );
             }
         },
     });
-}
 
-const previousButton = document.getElementById('previous-button');
-if (previousButton) {
-    previousButton.onclick = () => cycleRecipes(-1);
-}
+    const previousButton = document.getElementById('previous-button');
+    if (previousButton) {
+        previousButton.onclick = () => cycleRecipes(-1);
+    }
 
-const nextButton = document.getElementById('next-button');
-if (nextButton) {
-    nextButton.onclick = () => cycleRecipes(1);
-}
+    const nextButton = document.getElementById('next-button');
+    if (nextButton) {
+        nextButton.onclick = () => cycleRecipes(1);
+    }
 
-const loginButton = document.getElementById('login-button');
-if (loginButton) {
-    loginButton.onclick = () => {
-        chrome.runtime.sendMessage({ type: 'OPEN_LOGIN_PAGE' });
-    };
-}
+    const loginButton = document.getElementById('login-button');
+    if (loginButton) {
+        loginButton.onclick = () => {
+            chrome.runtime.sendMessage({ type: 'OPEN_LOGIN_PAGE' });
+        };
+    }
 
-const deleteButton = document.getElementById('delete-button');
-if (deleteButton) {
-    deleteButton.onclick = deleteCurrentRecipe;
-}
-// Get a reference to the button and the recipe paragraph
-const toggleRecipesButton = document.getElementById('toggle-recipes-btn');
-if (toggleRecipesButton) {
-    toggleRecipesButton.onclick = () => {
-        // Check if the recipes paragraph is currently visible
-        if (savedRecipes!.style.display !== 'none') {
-            // If it is visible, hide it and change the button image to 'show-icon'
-            savedRecipes!.style.display = 'none';
-            toggleRecipesButton.innerHTML = `
+    const deleteButton = document.getElementById('delete-button');
+    if (deleteButton) {
+        deleteButton.onclick = deleteCurrentRecipe;
+    }
+    // Get a reference to the button and the recipe paragraph
+    const toggleRecipesButton = document.getElementById('toggle-recipes-btn');
+    if (toggleRecipesButton) {
+        toggleRecipesButton.onclick = () => {
+            // Check if the recipes paragraph is currently visible
+            if (savedRecipes!.style.display !== 'none') {
+                // If it is visible, hide it and change the button image to 'show-icon'
+                savedRecipes!.style.display = 'none';
+                toggleRecipesButton.innerHTML = `
                 <img src="../../assets/images/button/hide-icon.png" alt="Show" />
             `;
-        } else {
-            // If it's not visible, show it and change the button image to 'hide-icon'
-            savedRecipes!.style.display = 'block';
-            toggleRecipesButton.innerHTML = `
+            } else {
+                // If it's not visible, show it and change the button image to 'hide-icon'
+                savedRecipes!.style.display = 'block';
+                toggleRecipesButton.innerHTML = `
                 <img src="../../assets/images/button/show-icon.png" alt="Hide" />
             `;
-        }
-    };
+            }
+        };
+    }
+
+    document.getElementById('recipe-selector')!.addEventListener('change', (e) => {
+        currentRecipeIndex = parseInt((e.target as HTMLSelectElement).value);
+        cycleRecipes(0);
+    });
 }
+
 
 main();

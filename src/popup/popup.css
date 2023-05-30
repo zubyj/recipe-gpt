@@ -74,6 +74,16 @@ body {
     justify-content: space-between;
 }
 
+#recipe-selector {
+    width: 100%;
+    padding: 10px;
+    border-radius: 5px;
+    background-color: #1F1F1F;
+    color: #F5F5F5;
+    border: 1px solid #F5F5F5;
+    margin-bottom: 1rem;
+}
+
 .message {
     background-color: #1F1F1F;
     color: #F5F5F5;
