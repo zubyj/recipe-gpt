@@ -20,9 +20,6 @@ function displayLoginMessage(): void {
     message!.textContent = 'Please login to ChatGPT to use this extension.';
 }
 
-/* 
-    Attach onclick events to buttons
-*/
 function initGetRecipeBtn(chatGPTProvider: ChatGPTProvider): void {
     const getRecipeBtn = document.getElementById('get-recipe-btn')!;
     getRecipeBtn.onclick = async () => {
@@ -185,7 +182,6 @@ function getEssentialText(text: string) {
     return text
 }
 
-
 function getRecipeFromGPT(
     chatGPTProvider: ChatGPTProvider,
     codeText: string,
@@ -195,7 +191,7 @@ function getRecipeFromGPT(
     Summarize the recipe in the following text.
     If there's no recipe in the text, return 'No recipe found'. 
     Else, do the following:
-    Return 'Name' followed by name of the recipe followed by 'Ingredients' 
+    Return 'Ingredients' 
     with a bullet point list of the ingredients and measurements 
     followed by 'Instructions' with a numbered list of instructions.
     Don't return anything else. 

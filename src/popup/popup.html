@@ -2,43 +2,41 @@
 <html>
 
 <head>
-    <title>recipe gpt</title>
+    <title>RecipeGPT</title>
     <link rel="stylesheet" href="./popup.css">
     <script type="module" src="../../dist/popup/popup.js"></script>
 </head>
 
 <body id="body">
-    <div id="header-container">
-        <img src="../../assets/images/icon-48.png" alt="logo" id="icon" />
+    <div id="title-container">
+        <img src="../../assets/images/logo/icon-48.png" alt="logo" id="icon" />
         <h2 id="title">Recipe GPT</h2>
     </div>
     <button id="login-button" class="material-button hidden">
         Open ChatGPT website
     </button>
-    <div id="main-buttons">
-        <button id="get-recipe-btn" class="material-button">
-            <img src="../../assets/images/ingredients-icon.png" width="25" />
-            <span id="buttonText">
-                Get the recipe
-            </span>
-        </button>
-    </div>
-    <div id="button-container">
-        <button id="previous-button">
-            <img src="../../assets/images/prev-icon.png" width="30" alt="previous" />
-        </button>
-        <button id="delete-button">
-            <img src="../../assets/images/trash-icon.png" width="30" alt="delete" />
-        </button>
-        <button id="edit-btn">
-            <img src="../../assets/images/edit-icon.png" width="30" alt="edit" />
-        </button>
-        <button id="next-button">
-            <img src="../../assets/images/next-icon.png" width="30" alt="next" />
-        </button>
-    </div>
-    <!-- GPT Response -->
+    <button id="get-recipe-btn" class="material-button">
+        <img src="../../assets/images/button/ingredients-icon.png" width="25" />
+        <span id="buttonText">
+            Get the recipe
+        </span>
+    </button>
     <div id="recipes-container">
+        <div id="button-container">
+            <button id="previous-button" class="nav-button">
+                <img src="../../assets/images/button/prev-icon.png" alt="previous" />
+            </button>
+            <button id="delete-button" class="nav-button">
+                <img src="../../assets/images/button/trash-icon.png" alt="delete" />
+            </button>
+            <button id="edit-btn" class="nav-button">
+                <img src="../../assets/images/button/edit-icon.png" alt="edit" />
+            </button>
+            <button id="next-button" class="nav-button">
+                <img src="../../assets/images/button/next-icon.png" alt="next" />
+            </button>
+        </div>
+        <!-- GPT Response -->
         <p id="message" class="message hidden"></p>
         <!-- Saved Recipes -->
         <p id="recipes" class="message"></p>
