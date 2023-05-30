@@ -72,6 +72,48 @@ async function main(): Promise<void> {
             currentRecipeIndex = parseInt((e.target as HTMLSelectElement).value);
             retrieveAndDisplayCurrentRecipe(currentRecipeIndex);
         });
+
+        const previousButton = document.getElementById('previous-button');
+        if (previousButton) {
+            previousButton.onclick = () => cycleRecipes(-1);
+        }
+
+        const nextButton = document.getElementById('next-button');
+        if (nextButton) {
+            nextButton.onclick = () => cycleRecipes(1);
+        }
+
+        const loginButton = document.getElementById('login-button');
+        if (loginButton) {
+            loginButton.onclick = () => {
+                chrome.runtime.sendMessage({ type: 'OPEN_LOGIN_PAGE' });
+            };
+        }
+
+        const deleteButton = document.getElementById('delete-button');
+        if (deleteButton) {
+            deleteButton.onclick = deleteCurrentRecipe;
+        }
+        // Get a reference to the button and the recipe paragraph
+        const toggleRecipesButton = document.getElementById('toggle-recipes-btn');
+        if (toggleRecipesButton) {
+            toggleRecipesButton.onclick = () => {
+                // Check if the recipes paragraph is currently visible
+                if (savedRecipes!.style.display !== 'none') {
+                    // If it is visible, hide it and change the button image to 'show-icon'
+                    savedRecipes!.style.display = 'none';
+                    toggleRecipesButton.innerHTML = `
+                    <img src="../../assets/images/button/hide-icon.png" alt="Show" />
+                `;
+                } else {
+                    // If it's not visible, show it and change the button image to 'hide-icon'
+                    savedRecipes!.style.display = 'block';
+                    toggleRecipesButton.innerHTML = `
+                    <img src="../../assets/images/button/show-icon.png" alt="Hide" />
+                `;
+                }
+            };
+        }
     } catch (error) {
         handleError(error as Error);
     }
@@ -278,47 +320,6 @@ function getRecipeFromGPT(
         },
     });
 
-    const previousButton = document.getElementById('previous-button');
-    if (previousButton) {
-        previousButton.onclick = () => cycleRecipes(-1);
-    }
-
-    const nextButton = document.getElementById('next-button');
-    if (nextButton) {
-        nextButton.onclick = () => cycleRecipes(1);
-    }
-
-    const loginButton = document.getElementById('login-button');
-    if (loginButton) {
-        loginButton.onclick = () => {
-            chrome.runtime.sendMessage({ type: 'OPEN_LOGIN_PAGE' });
-        };
-    }
-
-    const deleteButton = document.getElementById('delete-button');
-    if (deleteButton) {
-        deleteButton.onclick = deleteCurrentRecipe;
-    }
-    // Get a reference to the button and the recipe paragraph
-    const toggleRecipesButton = document.getElementById('toggle-recipes-btn');
-    if (toggleRecipesButton) {
-        toggleRecipesButton.onclick = () => {
-            // Check if the recipes paragraph is currently visible
-            if (savedRecipes!.style.display !== 'none') {
-                // If it is visible, hide it and change the button image to 'show-icon'
-                savedRecipes!.style.display = 'none';
-                toggleRecipesButton.innerHTML = `
-                <img src="../../assets/images/button/hide-icon.png" alt="Show" />
-            `;
-            } else {
-                // If it's not visible, show it and change the button image to 'hide-icon'
-                savedRecipes!.style.display = 'block';
-                toggleRecipesButton.innerHTML = `
-                <img src="../../assets/images/button/show-icon.png" alt="Hide" />
-            `;
-            }
-        };
-    }
 }
 
 
