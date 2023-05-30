@@ -7,6 +7,7 @@ let currentRecipeIndex = 0;
 let message = document.getElementById('message');
 let errorMessage = document.getElementById('error-message');
 let savedRecipes = document.getElementById('saved-recipes');
+let recipeSelector = document.getElementById('recipe-selector');
 
 function handleError(error: Error): void {
     if (error.message === 'UNAUTHORIZED' || error.message === 'CLOUDFLARE') {
@@ -38,6 +39,22 @@ function initGetRecipeBtn(chatGPTProvider: ChatGPTProvider): void {
     };
 }
 
+function populateRecipeSelector(recipes) {
+    // First clear all existing options
+    recipeSelector!.innerHTML = 'Select a recipe';
+    // Then populate with the updated list of recipes
+    if (recipes) {
+
+        recipes.forEach((recipe, index) => {
+            const option = document.createElement('option');
+            option.text = recipe.title;
+            option.value = index.toString();
+            if (index === currentRecipeIndex) option.selected = true;
+            recipeSelector!.appendChild(option);
+        });
+    }
+}
+
 async function main(): Promise<void> {
     try {
         const accessToken = await getChatGPTAccessToken();
@@ -49,12 +66,18 @@ async function main(): Promise<void> {
         }
 
         retrieveAndDisplayCurrentRecipe();
+
+        // Add event listener for when the selected option in the dropdown changes
+        recipeSelector!.addEventListener('change', (e) => {
+            currentRecipeIndex = parseInt((e.target as HTMLSelectElement).value);
+            retrieveAndDisplayCurrentRecipe(currentRecipeIndex);
+        });
     } catch (error) {
         handleError(error as Error);
     }
 }
 
-async function retrieveAndDisplayCurrentRecipe() {
+async function retrieveAndDisplayCurrentRecipe(recipeIndex: number | null = null): Promise<void> {
     try {
         const result = await new Promise((resolve, reject) => {
             chrome.storage.local.get(['recipes', 'currentRecipeIndex'], result => {
@@ -67,31 +90,24 @@ async function retrieveAndDisplayCurrentRecipe() {
         });
 
         const recipes = result.recipes;
-        currentRecipeIndex = result.currentRecipeIndex;
+        currentRecipeIndex = recipeIndex !== null ? recipeIndex : result.currentRecipeIndex;
+
+
 
         // Update UI with the last viewed recipe
         if (!recipes || recipes.length === 0) {
             savedRecipes!.textContent = "No recipes added.";
         }
         else {
-            console.log('title ' + recipes[currentRecipeIndex].title);
             savedRecipes!.innerHTML = recipes[currentRecipeIndex].text;
         }
 
-        // Populate the dropdown with recipe titles
-        const recipeSelector = document.getElementById('recipe-selector');
-        recipes.forEach((recipe, index) => {
-            const option = document.createElement('option');
-            option.text = recipe.title;
-            option.value = index.toString();
-            if (index === currentRecipeIndex) option.selected = true;
-            recipeSelector.appendChild(option);
-        });
+        populateRecipeSelector(recipes);
+
     } catch (error) {
         console.error('Error:', error);
     }
 }
-
 
 async function cycleRecipes(direction: number) {
     try {
@@ -166,6 +182,7 @@ async function deleteCurrentRecipe() {
 
         // Update local storage with the new recipes array and the new currentRecipeIndex.
         chrome.storage.local.set({ recipes: recipes, currentRecipeIndex: currentRecipeIndex });
+        populateRecipeSelector(recipes); // Add this line to update the dropdown
         cycleRecipes(1);
     } catch (error) {
         console.error('Error:', error);
@@ -212,6 +229,7 @@ function getRecipeFromGPT(
     Otherwise, I want you to return the summary of the recipe in two sections:
     1. Return 'Ingredients' with a bullet point list of the ingredients and measurements
     2. Return 'Instructions' with a numbered list of instructions
+    Dont return anything else.
     Keep the answer as short as possible.
     Add a newline between each section.
     `
@@ -301,11 +319,6 @@ function getRecipeFromGPT(
             }
         };
     }
-
-    document.getElementById('recipe-selector')!.addEventListener('change', (e) => {
-        currentRecipeIndex = parseInt((e.target as HTMLSelectElement).value);
-        cycleRecipes(0);
-    });
 }
 
 
