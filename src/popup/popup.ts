@@ -265,9 +265,8 @@ function getRecipeFromGPT(
 ): void {
 
     const promptHeader = `
-    I'm giving you the text that I scraped from a webpage.
-    I'm trying to find a recipe in the text. 
-    If you can't find a recipe in the following text, return 'No recipe found'.
+    I scraped the following text from a website. I'm trying to find a recipe in the text.
+    If no recipe exists in the text, return 'No recipe found'.
     Otherwise, I want you to return the summary of the recipe in two sections:
     1. Return 'Ingredients' with a bullet point list of the ingredients and measurements
     2. Return 'Instructions' with a numbered list of instructions
