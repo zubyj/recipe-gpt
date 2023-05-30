@@ -191,9 +191,9 @@ function getRecipeFromGPT(
 ): void {
 
     const promptHeader = `
-    I scraped this recipe from a website using a Chrome extension.
-    If there's no recipe in the text, return 'No recipe found'.
-    Otherwise do the following steps
+    I'm trying to find and extract a recipe from a webpage.
+    If there's no recipe in the following text, return 'No recipe found'.
+    Otherwise, I want you to summarize the recipe into two sections:
     1. Return 'Ingredients' with a bullet point list of the ingredients and measurements
     2. Return 'Instructions' with a numbered list of instructions
     Keep the answer as short as possible.
