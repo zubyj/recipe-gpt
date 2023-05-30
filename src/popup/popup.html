@@ -23,25 +23,35 @@
         </span>
     </button>
     <div id="recipes-container">
-        <div id="button-container">
-            <button id="previous-button" class="nav-button">
-                <img src="../../assets/images/button/prev-icon.png" alt="previous" />
-            </button>
-            <button id="delete-button" class="nav-button">
-                <img src="../../assets/images/button/trash-icon.png" alt="delete" />
-            </button>
-            <!-- <button id="edit-btn" class="nav-button">
+
+        <!-- Dropdown list of recipes-->
+        <div id="dropdown-container">
+            <div id="button-container">
+                <select id="dropdown" class="dropdown">
+                    <option value="0">Select a recipe</option>
+                </select>
+                <button id="previous-button" class="nav-button">
+                    <img src="../../assets/images/button/prev-icon.png" alt="previous" />
+                </button>
+                <button id="next-button" class="nav-button">
+                    <img src="../../assets/images/button/next-icon.png" alt="next" />
+                </button>
+                <button id="delete-button" class="nav-button">
+                    <img src="../../assets/images/button/trash-icon.png" alt="delete" />
+                </button>
+                <button id="toggle-recipes-btn" class="nav-button">
+                    <img src="../../assets/images/button/show-icon.png" alt="toggle recipes" />
+                </button>
+                <!-- <button id="edit-btn" class="nav-button">
                 <img src="../../assets/images/button/edit-icon.png" alt="edit" />
             </button> -->
-            <button id="next-button" class="nav-button">
-                <img src="../../assets/images/button/next-icon.png" alt="next" />
-            </button>
+
+            </div>
+            <!-- GPT Response -->
+            <p id="message" class="message hidden"></p>
+            <!-- Saved Recipes -->
+            <p id="saved-recipes" class="message"></p>
         </div>
-        <!-- GPT Response -->
-        <p id="message" class="message hidden"></p>
-        <!-- Saved Recipes -->
-        <p id="recipes" class="message"></p>
-    </div>
 </body>
 
 </html>

@@ -6,6 +6,7 @@ import {
 let currentRecipeIndex = 0;
 let message = document.getElementById('message');
 let errorMessage = document.getElementById('error-message');
+let savedRecipes = document.getElementById('saved-recipes');
 
 function handleError(error: Error): void {
     if (error.message === 'UNAUTHORIZED' || error.message === 'CLOUDFLARE') {
@@ -70,10 +71,11 @@ async function retrieveAndDisplayCurrentRecipe() {
 
         // Update UI with the last viewed recipe
         if (!recipes || recipes.length === 0) {
-            document.getElementById('recipes')!.textContent = "No recipes added.";
+            savedRecipes!.textContent = "No recipes added.";
         }
         else {
-            document.getElementById('recipes')!.innerHTML = recipes[currentRecipeIndex].text;
+            console.log('title ' + recipes[currentRecipeIndex].title);
+            savedRecipes!.innerHTML = recipes[currentRecipeIndex].text;
         }
     } catch (error) {
         console.error('Error:', error);
@@ -262,6 +264,26 @@ if (loginButton) {
 const deleteButton = document.getElementById('delete-button');
 if (deleteButton) {
     deleteButton.onclick = deleteCurrentRecipe;
+}
+// Get a reference to the button and the recipe paragraph
+const toggleRecipesButton = document.getElementById('toggle-recipes-btn');
+if (toggleRecipesButton) {
+    toggleRecipesButton.onclick = () => {
+        // Check if the recipes paragraph is currently visible
+        if (savedRecipes!.style.display !== 'none') {
+            // If it is visible, hide it and change the button image to 'show-icon'
+            savedRecipes!.style.display = 'none';
+            toggleRecipesButton.innerHTML = `
+                <img src="../../assets/images/button/hide-icon.png" alt="Show" />
+            `;
+        } else {
+            // If it's not visible, show it and change the button image to 'hide-icon'
+            savedRecipes!.style.display = 'block';
+            toggleRecipesButton.innerHTML = `
+                <img src="../../assets/images/button/show-icon.png" alt="Hide" />
+            `;
+        }
+    };
 }
 
 main();
