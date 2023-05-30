@@ -5,41 +5,44 @@ import {
 
 let currentRecipeIndex = 0;
 let message = document.getElementById('message');
+let errorMessage = document.getElementById('error-message');
 
 function handleError(error: Error): void {
     if (error.message === 'UNAUTHORIZED' || error.message === 'CLOUDFLARE') {
         displayLoginMessage();
     } else {
         console.error('Error:', error);
-        message!.textContent = error.message;
     }
 }
 
 function displayLoginMessage(): void {
     document.getElementById('login-button')!.classList.remove('hidden');
-    message!.textContent = 'Please login to ChatGPT to use this extension.';
+    retrieveAndDisplayCurrentRecipe();
+    document.getElementById('get-recipe-btn')!.classList.add('hidden');
+    document.getElementById('error-message')!.textContent = "Please login to ChatGPT to summarize recipes.";
 }
 
+/* 
+    On click, asks ChatGPT to summarize the recipe on the current page.
+*/
 function initGetRecipeBtn(chatGPTProvider: ChatGPTProvider): void {
     const getRecipeBtn = document.getElementById('get-recipe-btn')!;
     getRecipeBtn.onclick = async () => {
-        let codeText = await getCodeFromActiveTab();
-        if (codeText) {
-            getRecipeFromGPT(chatGPTProvider, codeText);
+        let recipe = await getRecipeFromActiveTab();
+        if (recipe) {
+            getRecipeFromGPT(chatGPTProvider, recipe);
         } else {
-            message!.textContent = "Unable to find recipe on current page. Please refresh the page or try another page.";
+            document.getElementById('error-message')!.textContent = "Cant find recipe. Please refresh the page or try another page.";
         }
     };
 }
-
 
 async function main(): Promise<void> {
     try {
         const accessToken = await getChatGPTAccessToken();
         if (accessToken) {
             initGetRecipeBtn(new ChatGPTProvider(accessToken));
-            const getRecipeBtn = document.getElementById('get-recipe-btn');
-            getRecipeBtn?.classList.remove('hidden');
+            document.getElementById('get-recipe-btn')!.classList.remove('hidden');
         } else {
             displayLoginMessage();
         }
@@ -155,7 +158,7 @@ async function deleteCurrentRecipe() {
 }
 
 
-async function getCodeFromActiveTab(): Promise<string | null> {
+async function getRecipeFromActiveTab(): Promise<string | null> {
     return new Promise<string | null>((resolve) => {
         chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
             chrome.tabs.sendMessage(
@@ -188,14 +191,13 @@ function getRecipeFromGPT(
 ): void {
 
     const promptHeader = `
-    Summarize the recipe in the following text.
-    If there's no recipe in the text, return 'No recipe found'. 
-    Else, do the following:
-    Return 'Ingredients' 
-    with a bullet point list of the ingredients and measurements 
-    followed by 'Instructions' with a numbered list of instructions.
-    Don't return anything else. 
+    I scraped this recipe from a website using a Chrome extension.
+    If there's no recipe in the text, return 'No recipe found'.
+    Otherwise do the following steps
+    1. Return 'Ingredients' with a bullet point list of the ingredients and measurements
+    2. Return 'Instructions' with a numbered list of instructions
     Keep the answer as short as possible.
+    Add a newline between each section.
     `
 
     const promptText = getEssentialText(codeText.toString());
@@ -220,6 +222,7 @@ function getRecipeFromGPT(
                 message!.classList.add('hidden');
                 recipes!.classList.remove('hidden');
                 if (fullText.length < 25) {
+                    errorMessage!.textContent = 'No recipe found on the page.';
                     return;
                 }
                 // Save the recipe to local storage
