@@ -5,9 +5,10 @@ import {
 
 let currentRecipeIndex = 0;
 let message = document.getElementById('message');
-let errorMessage = document.getElementById('error-message');
+let infoMessage = document.getElementById('info-message');
 let savedRecipes = document.getElementById('saved-recipes');
 let recipeSelector = document.getElementById('recipe-selector');
+let getRecipeBtn = document.getElementById('get-recipe-btn');
 
 function handleError(error: Error): void {
     if (error.message === 'UNAUTHORIZED' || error.message === 'CLOUDFLARE') {
@@ -21,7 +22,7 @@ function displayLoginMessage(): void {
     document.getElementById('login-button')!.classList.remove('hidden');
     retrieveAndDisplayCurrentRecipe();
     document.getElementById('get-recipe-btn')!.classList.add('hidden');
-    document.getElementById('error-message')!.textContent = "Please login to ChatGPT to summarize recipes.";
+    document.getElementById('info-message')!.textContent = "Please login to ChatGPT to summarize recipes.";
 }
 
 /* 
@@ -34,17 +35,22 @@ function initGetRecipeBtn(chatGPTProvider: ChatGPTProvider): void {
         if (recipe) {
             getRecipeFromGPT(chatGPTProvider, recipe);
         } else {
-            document.getElementById('error-message')!.textContent = "Cant find recipe. Please refresh the page or try another page.";
+            document.getElementById('info-message')!.textContent = "Cant find recipe. Please refresh the page or try another page.";
         }
     };
 }
 
 function populateRecipeSelector(recipes) {
     // First clear all existing options
-    recipeSelector!.innerHTML = 'Select a recipe';
+    recipeSelector!.innerHTML = '';
     // Then populate with the updated list of recipes
+    if (recipes.length == 0) {
+        const option = document.createElement('option');
+        option.text = 'No recipes added';
+        recipeSelector!.appendChild(option);
+        return;
+    }
     if (recipes) {
-
         recipes.forEach((recipe, index) => {
             const option = document.createElement('option');
             option.text = recipe.title;
@@ -103,13 +109,13 @@ async function main(): Promise<void> {
                     // If it is visible, hide it and change the button image to 'show-icon'
                     savedRecipes!.style.display = 'none';
                     toggleRecipesButton.innerHTML = `
-                    <img src="../../assets/images/button/hide-icon.png" alt="Show" />
+                    <img src="../../assets/images/button/show-icon.png" alt="Show" />
                 `;
                 } else {
                     // If it's not visible, show it and change the button image to 'hide-icon'
                     savedRecipes!.style.display = 'block';
                     toggleRecipesButton.innerHTML = `
-                    <img src="../../assets/images/button/show-icon.png" alt="Hide" />
+                    <img src="../../assets/images/button/hide-icon.png" alt="Hide" />
                 `;
                 }
             };
@@ -138,7 +144,7 @@ async function retrieveAndDisplayCurrentRecipe(recipeIndex: number | null = null
 
         // Update UI with the last viewed recipe
         if (!recipes || recipes.length === 0) {
-            savedRecipes!.textContent = "No recipes added.";
+            savedRecipes!.textContent = "Recipe summaries will appear here.";
         }
         else {
             savedRecipes!.innerHTML = recipes[currentRecipeIndex].text;
@@ -264,17 +270,20 @@ function getRecipeFromGPT(
     codeText: string,
 ): void {
 
+    let recipeBtnText = getRecipeBtn!.innerHTML;
+
+    getRecipeBtn!.innerText = 'Generating the recipe...';
+    getRecipeBtn!.disabled = true;
+
     const promptHeader = `
     I scraped the following text from a website. I'm trying to find a recipe in the text.
-    If no recipe exists in the text, return 'No recipe found'.
+    If you dont see a recipe in the text, return 'No recipe found'.
     Otherwise, I want you to return the summary of the recipe in two sections:
     1. Return 'Ingredients' with a bullet point list of the ingredients and measurements
     2. Return 'Instructions' with a numbered list of instructions
     Dont return anything else.
-    Keep the answer as short as possible.
     Add a newline between each section.
     `
-
     const promptText = getEssentialText(codeText.toString());
     message!.innerHTML = '';
 
@@ -293,10 +302,12 @@ function getRecipeFromGPT(
             }
 
             if (event.type === 'done') {
+                getRecipeBtn!.innerHTML = recipeBtnText;
+                getRecipeBtn!.disabled = false;
                 message!.classList.add('hidden');
                 savedRecipes!.classList.remove('hidden');
                 if (fullText.length < 25) {
-                    errorMessage!.textContent = 'No recipe found on the page.';
+                    infoMessage!.textContent = 'No recipe found on the page.';
                     return;
                 }
                 // Save the recipe to local storage
@@ -318,7 +329,6 @@ function getRecipeFromGPT(
             }
         },
     });
-
 }
 
 
