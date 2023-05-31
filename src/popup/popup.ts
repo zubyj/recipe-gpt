@@ -9,6 +9,7 @@ let infoMessage = document.getElementById('info-message');
 let savedRecipes = document.getElementById('saved-recipes');
 let recipeSelector = document.getElementById('recipe-selector');
 let getRecipeBtn = document.getElementById('get-recipe-btn');
+let toggleRecipesBtn = document.getElementById('toggle-recipes-btn');
 
 function handleError(error: Error): void {
     if (error.message === 'UNAUTHORIZED' || error.message === 'CLOUDFLARE') {
@@ -21,21 +22,20 @@ function handleError(error: Error): void {
 function displayLoginMessage(): void {
     document.getElementById('login-button')!.classList.remove('hidden');
     retrieveAndDisplayCurrentRecipe();
-    document.getElementById('get-recipe-btn')!.classList.add('hidden');
-    document.getElementById('info-message')!.textContent = "Please login to ChatGPT to summarize recipes.";
+    getRecipeBtn!.classList.add('hidden');
+    infoMessage!.textContent = "Please login to ChatGPT to summarize recipes.";
 }
 
 /* 
     On click, asks ChatGPT to summarize the recipe on the current page.
 */
 function initGetRecipeBtn(chatGPTProvider: ChatGPTProvider): void {
-    const getRecipeBtn = document.getElementById('get-recipe-btn')!;
-    getRecipeBtn.onclick = async () => {
+    getRecipeBtn!.onclick = async () => {
         let recipe = await getRecipeFromActiveTab();
         if (recipe) {
             getRecipeFromGPT(chatGPTProvider, recipe);
         } else {
-            document.getElementById('info-message')!.textContent = "Cant find recipe. Please refresh the page or try another page.";
+            infoMessage!.textContent = "Cant find recipe. Please refresh the page or try another page.";
         }
     };
 }
@@ -51,7 +51,7 @@ function populateRecipeSelector(recipes) {
         return;
     }
     if (recipes) {
-        recipes.forEach((recipe, index) => {
+        recipes.forEach((recipe, index: number) => {
             const option = document.createElement('option');
             option.text = recipe.title;
             option.value = index.toString();
@@ -66,7 +66,7 @@ async function main(): Promise<void> {
         const accessToken = await getChatGPTAccessToken();
         if (accessToken) {
             initGetRecipeBtn(new ChatGPTProvider(accessToken));
-            document.getElementById('get-recipe-btn')!.classList.remove('hidden');
+            getRecipeBtn!.classList.remove('hidden');
         } else {
             displayLoginMessage();
         }
@@ -100,10 +100,10 @@ async function main(): Promise<void> {
         if (deleteButton) {
             deleteButton.onclick = deleteCurrentRecipe;
         }
+
         // Get a reference to the button and the recipe paragraph
-        const toggleRecipesButton = document.getElementById('toggle-recipes-btn');
-        if (toggleRecipesButton) {
-            toggleRecipesButton.onclick = () => {
+        if (toggleRecipesBtn) {
+            toggleRecipesBtn.onclick = () => {
                 // Check if the recipes paragraph is currently visible
                 if (savedRecipes!.style.display !== 'none') {
                     // If it is visible, hide it and change the button image to 'show-icon'
@@ -183,7 +183,6 @@ async function cycleRecipes(direction: number) {
         // Update local storage
         chrome.storage.local.set({ currentRecipeIndex: currentRecipeIndex });
 
-        const recipeSelector = document.getElementById('recipe-selector');
         recipeSelector.selectedIndex = currentRecipeIndex;
 
         // Update UI
@@ -272,8 +271,10 @@ function getRecipeFromGPT(
 
     let recipeBtnText = getRecipeBtn!.innerHTML;
 
-    getRecipeBtn!.innerText = 'Generating the recipe...';
+    getRecipeBtn!.innerText = 'Summarizing the recipe...';
     getRecipeBtn!.disabled = true;
+
+
 
     const promptHeader = `
     I scraped the following text from a website. I'm trying to find a recipe in the text.
@@ -290,8 +291,9 @@ function getRecipeFromGPT(
     let fullText = '';
     const currentURL = "the current URL"; // Retrieve the current URL using the chrome.tabs API
     message!.classList.remove('hidden');
-
     savedRecipes!.classList.add('hidden');
+
+
 
     chatGPTProvider.generateAnswer({
         prompt: `${promptHeader}\n ${promptText}`,
