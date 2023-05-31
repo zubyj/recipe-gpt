@@ -162,7 +162,7 @@ async function retrieveAndDisplayCurrentRecipe(recipeIndex: number | null = null
             // Display recipe text and URL
             savedRecipes!.innerHTML = recipes[currentRecipeIndex].text;
             recipeUrl?.classList.remove('hidden');
-            recipeUrl!.innerHTML = `<a href="${recipes[currentRecipeIndex].url}" target="_blank">Open Website</a>`;
+            recipeUrl!.setAttribute('href', recipes[currentRecipeIndex].url); // <-- This line sets the URL
 
         }
 

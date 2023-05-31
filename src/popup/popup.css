@@ -12,11 +12,6 @@ body {
     min-height: 300px;
 }
 
-a {
-    text-decoration: none;
-    color: white;
-}
-
 #title-container {
     display: flex;
     align-items: center;
@@ -77,6 +72,14 @@ a {
     display: flex;
     justify-content: space-between;
     height: 50px;
+}
+
+#recipe-url {
+    text-decoration: none;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 #recipe-selector {
