@@ -8,8 +8,16 @@ let message = document.getElementById('message');
 let infoMessage = document.getElementById('info-message');
 let savedRecipes = document.getElementById('saved-recipes');
 let recipeSelector = document.getElementById('recipe-selector');
+
+
+// Buttons
 let getRecipeBtn = document.getElementById('get-recipe-btn');
 let toggleRecipesBtn = document.getElementById('toggle-recipes-btn');
+let deleteBtn = document.getElementById('delete-button');
+let prevBtn = document.getElementById('previous-button');
+let nextBtn = document.getElementById('next-button');
+let recipeUrl = document.getElementById('recipe-url');
+let buttons = [getRecipeBtn, toggleRecipesBtn, deleteBtn, prevBtn, nextBtn, recipeUrl];
 
 function handleError(error: Error): void {
     if (error.message === 'UNAUTHORIZED' || error.message === 'CLOUDFLARE') {
@@ -18,6 +26,15 @@ function handleError(error: Error): void {
         console.error('Error:', error);
     }
 }
+
+function enableButtons() {
+    buttons.forEach(button => button.disabled = false);
+}
+
+function disableButtons() {
+    buttons.forEach(button => button.disabled = true);
+}
+
 
 function displayLoginMessage(): void {
     document.getElementById('login-button')!.classList.remove('hidden');
@@ -79,14 +96,12 @@ async function main(): Promise<void> {
             retrieveAndDisplayCurrentRecipe(currentRecipeIndex);
         });
 
-        const previousButton = document.getElementById('previous-button');
-        if (previousButton) {
-            previousButton.onclick = () => cycleRecipes(-1);
+        if (prevBtn) {
+            prevBtn.onclick = () => cycleRecipes(-1);
         }
 
-        const nextButton = document.getElementById('next-button');
-        if (nextButton) {
-            nextButton.onclick = () => cycleRecipes(1);
+        if (nextBtn) {
+            nextBtn.onclick = () => cycleRecipes(1);
         }
 
         const loginButton = document.getElementById('login-button');
@@ -96,9 +111,8 @@ async function main(): Promise<void> {
             };
         }
 
-        const deleteButton = document.getElementById('delete-button');
-        if (deleteButton) {
-            deleteButton.onclick = deleteCurrentRecipe;
+        if (deleteBtn) {
+            deleteBtn.onclick = deleteCurrentRecipe;
         }
 
         // Get a reference to the button and the recipe paragraph
@@ -147,8 +161,9 @@ async function retrieveAndDisplayCurrentRecipe(recipeIndex: number | null = null
         else {
             // Display recipe text and URL
             savedRecipes!.innerHTML = recipes[currentRecipeIndex].text;
-            document.getElementById('message-url')?.classList.remove('hidden');
-            document.getElementById('message-url')!.innerHTML = `<a href="${recipes[currentRecipeIndex].url}" target="_blank">Open Recipe</a>`;
+            recipeUrl?.classList.remove('hidden');
+            recipeUrl!.innerHTML = `<a href="${recipes[currentRecipeIndex].url}" target="_blank">Open Website</a>`;
+
         }
 
         populateRecipeSelector(recipes);
@@ -272,10 +287,8 @@ function getRecipeFromGPT(
 ): void {
 
     let recipeBtnText = getRecipeBtn!.innerHTML;
-
     getRecipeBtn!.innerText = 'Summarizing the recipe...';
-    getRecipeBtn!.disabled = true;
-    toggleRecipesBtn!.disabled = true;
+    disableButtons();
 
 
     const promptHeader = `
@@ -298,13 +311,13 @@ function getRecipeFromGPT(
     chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
         title = tabs[0].title;
         currentURL = tabs[0].url
-    });
 
-    recipeSelector!.innerHTML = '';
-    // Then populate with the updated list of recipes
-    const option = document.createElement('option');
-    option.text = title;
-    recipeSelector!.appendChild(option);
+        recipeSelector!.innerHTML = '';
+        // Then populate with the updated list of recipes
+        const option = document.createElement('option');
+        option.text = title;
+        recipeSelector!.appendChild(option);
+    });
 
     message!.classList.remove('hidden');
     savedRecipes!.classList.add('hidden');
@@ -319,9 +332,9 @@ function getRecipeFromGPT(
             }
 
             if (event.type === 'done') {
+                enableButtons();
+
                 getRecipeBtn!.innerHTML = recipeBtnText;
-                getRecipeBtn!.disabled = false;
-                toggleRecipesBtn!.disabled = false;
                 message!.classList.add('hidden');
                 savedRecipes!.classList.remove('hidden');
                 if (fullText.length < 25) {
@@ -331,16 +344,13 @@ function getRecipeFromGPT(
                 // Save the recipe to local storage
                 chrome.storage.local.get(['recipes'], (result) => {
                     let recipes = result.recipes || [];
-
-                    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-                        recipes.push({
-                            url: currentURL,
-                            text: message?.innerHTML,
-                            title: title,  // Replace with the actual recipe title
-                        });
-                        chrome.storage.local.set({ recipes: recipes, currentRecipeIndex: recipes.length - 1 });
-                        retrieveAndDisplayCurrentRecipe()
+                    recipes.push({
+                        url: currentURL,
+                        text: message?.innerHTML,
+                        title: title,  // Replace with the actual recipe title
                     });
+                    chrome.storage.local.set({ recipes: recipes, currentRecipeIndex: recipes.length - 1 });
+                    retrieveAndDisplayCurrentRecipe()
                 });
             }
         },

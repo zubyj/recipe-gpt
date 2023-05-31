@@ -35,9 +35,10 @@ a {
 }
 
 #info-message {
-    color: #FF5722;
+    color: lightseagreen;
     font-size: 1rem;
     margin-bottom: 1rem;
+    width: 60vw;
 }
 
 .material-button {
@@ -46,9 +47,7 @@ a {
     justify-content: center;
     background-color: #FF5722;
     /* Vibrant color for main action */
-    border: none;
     padding: 10px 20px;
-    border-radius: 5px;
     color: #FFFFFF;
     transition: all 0.3s ease;
     margin-bottom: 2rem;
@@ -77,27 +76,17 @@ a {
 #button-container {
     display: flex;
     justify-content: space-between;
+    height: 50px;
 }
 
 #recipe-selector {
     width: 100%;
     padding: 10px;
-    border-radius: 5px;
     background-color: #1F1F1F;
     color: #F5F5F5;
-    border: 1px solid #FF5722;
     margin-bottom: 1rem;
 }
 
-#message-url {
-    background-color: #1F1F1F;
-    color: #F5F5F5;
-    padding: 10px;
-    text-align: center;
-    border-radius: 5px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
-    margin-bottom: 20px;
-}
 
 .message {
     background-color: #1F1F1F;
