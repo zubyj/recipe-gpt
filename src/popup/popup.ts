@@ -108,13 +108,13 @@ async function main(): Promise<void> {
                 if (savedRecipes!.style.display !== 'none') {
                     // If it is visible, hide it and change the button image to 'show-icon'
                     savedRecipes!.style.display = 'none';
-                    toggleRecipesButton.innerHTML = `
+                    toggleRecipesBtn!.innerHTML = `
                     <img src="../../assets/images/button/show-icon.png" alt="Show" />
                 `;
                 } else {
                     // If it's not visible, show it and change the button image to 'hide-icon'
                     savedRecipes!.style.display = 'block';
-                    toggleRecipesButton.innerHTML = `
+                    toggleRecipesBtn!.innerHTML = `
                     <img src="../../assets/images/button/hide-icon.png" alt="Hide" />
                 `;
                 }
@@ -183,7 +183,7 @@ async function cycleRecipes(direction: number) {
         // Update local storage
         chrome.storage.local.set({ currentRecipeIndex: currentRecipeIndex });
 
-        recipeSelector.selectedIndex = currentRecipeIndex;
+        recipeSelector!.selectedIndex = currentRecipeIndex;
 
         // Update UI
         if (recipes && recipes.length > 0) {
@@ -273,6 +273,7 @@ function getRecipeFromGPT(
 
     getRecipeBtn!.innerText = 'Summarizing the recipe...';
     getRecipeBtn!.disabled = true;
+    toggleRecipesBtn!.disabled = true;
 
 
 
@@ -306,6 +307,7 @@ function getRecipeFromGPT(
             if (event.type === 'done') {
                 getRecipeBtn!.innerHTML = recipeBtnText;
                 getRecipeBtn!.disabled = false;
+                toggleRecipesBtn!.disabled = false;
                 message!.classList.add('hidden');
                 savedRecipes!.classList.remove('hidden');
                 if (fullText.length < 25) {
