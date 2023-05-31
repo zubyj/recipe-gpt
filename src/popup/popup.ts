@@ -140,14 +140,15 @@ async function retrieveAndDisplayCurrentRecipe(recipeIndex: number | null = null
         const recipes = result.recipes;
         currentRecipeIndex = recipeIndex !== null ? recipeIndex : result.currentRecipeIndex;
 
-
-
         // Update UI with the last viewed recipe
         if (!recipes || recipes.length === 0) {
             savedRecipes!.textContent = "Recipe summaries will appear here.";
         }
         else {
+            // Display recipe text and URL
             savedRecipes!.innerHTML = recipes[currentRecipeIndex].text;
+            document.getElementById('message-url')?.classList.remove('hidden');
+            document.getElementById('message-url')!.innerHTML = `<a href="${recipes[currentRecipeIndex].url}" target="_blank">Open Recipe</a>`;
         }
 
         populateRecipeSelector(recipes);
@@ -156,6 +157,7 @@ async function retrieveAndDisplayCurrentRecipe(recipeIndex: number | null = null
         console.error('Error:', error);
     }
 }
+
 
 async function cycleRecipes(direction: number) {
     try {
@@ -276,7 +278,6 @@ function getRecipeFromGPT(
     toggleRecipesBtn!.disabled = true;
 
 
-
     const promptHeader = `
     I scraped the following text from a website. I'm trying to find a recipe in the text.
     If you dont see a recipe in the text, return 'No recipe found'.
@@ -289,16 +290,29 @@ function getRecipeFromGPT(
     const promptText = getEssentialText(codeText.toString());
     message!.innerHTML = '';
 
+
     let fullText = '';
-    const currentURL = "the current URL"; // Retrieve the current URL using the chrome.tabs API
+    let currentURL = "";
+    let title = ""
+
+    chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
+        title = tabs[0].title;
+        currentURL = tabs[0].url
+    });
+
+    recipeSelector!.innerHTML = '';
+    // Then populate with the updated list of recipes
+    const option = document.createElement('option');
+    option.text = title;
+    recipeSelector!.appendChild(option);
+
     message!.classList.remove('hidden');
     savedRecipes!.classList.add('hidden');
-
-
 
     chatGPTProvider.generateAnswer({
         prompt: `${promptHeader}\n ${promptText}`,
         onEvent: async (event: { type: string; data?: { text: string } }) => {
+
             if (event.type === 'answer' && event.data) {
                 fullText += event.data.text;
                 message!.innerHTML = fullText.replace(/\n/g, '<br>');
@@ -319,7 +333,6 @@ function getRecipeFromGPT(
                     let recipes = result.recipes || [];
 
                     chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-                        const title = tabs[0].title;
                         recipes.push({
                             url: currentURL,
                             text: message?.innerHTML,
@@ -328,8 +341,7 @@ function getRecipeFromGPT(
                         chrome.storage.local.set({ recipes: recipes, currentRecipeIndex: recipes.length - 1 });
                         retrieveAndDisplayCurrentRecipe()
                     });
-                }
-                );
+                });
             }
         },
     });
