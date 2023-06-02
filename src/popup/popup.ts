@@ -40,7 +40,7 @@ function displayLoginMessage(): void {
     document.getElementById('login-button')!.classList.remove('hidden');
     retrieveAndDisplayCurrentRecipe();
     getRecipeBtn!.classList.add('hidden');
-    infoMessage!.textContent = "Please login to ChatGPT to summarize recipes.";
+    infoMessage!.textContent = "Login to ChatGPT to summarize recipes.";
 }
 
 /* 
@@ -89,54 +89,55 @@ async function main(): Promise<void> {
             displayLoginMessage();
         }
 
-        retrieveAndDisplayCurrentRecipe();
-
-        // Add event listener for when the selected option in the dropdown changes
-        recipeSelector!.addEventListener('change', (e) => {
-            currentRecipeIndex = parseInt((e.target as HTMLSelectElement).value);
-            retrieveAndDisplayCurrentRecipe(currentRecipeIndex);
-        });
-
-        if (prevBtn) {
-            prevBtn.onclick = () => cycleRecipes(-1);
-        }
-
-        if (nextBtn) {
-            nextBtn.onclick = () => cycleRecipes(1);
-        }
-
-        const loginButton = document.getElementById('login-button');
-        if (loginButton) {
-            loginButton.onclick = () => {
-                chrome.runtime.sendMessage({ type: 'OPEN_LOGIN_PAGE' });
-            };
-        }
-
-        if (deleteBtn) {
-            deleteBtn.onclick = deleteCurrentRecipe;
-        }
-
-        // Get a reference to the button and the recipe paragraph
-        if (toggleRecipesBtn) {
-            toggleRecipesBtn.onclick = () => {
-                // Check if the recipes paragraph is currently visible
-                if (savedRecipes!.style.display !== 'none') {
-                    // If it is visible, hide it and change the button image to 'show-icon'
-                    savedRecipes!.style.display = 'none';
-                    toggleRecipesBtn!.innerHTML = `
-                    <img src="../../src/assets/images/button/show-icon.png" alt="Show" />
-                `;
-                } else {
-                    // If it's not visible, show it and change the button image to 'hide-icon'
-                    savedRecipes!.style.display = 'block';
-                    toggleRecipesBtn!.innerHTML = `
-                    <img src="../../src/assets/images/button/hide-icon.png" alt="Hide" />
-                `;
-                }
-            };
-        }
     } catch (error) {
         handleError(error as Error);
+    }
+
+    retrieveAndDisplayCurrentRecipe();
+
+    // Add event listener for when the selected option in the dropdown changes
+    recipeSelector!.addEventListener('change', (e) => {
+        currentRecipeIndex = parseInt((e.target as HTMLSelectElement).value);
+        retrieveAndDisplayCurrentRecipe(currentRecipeIndex);
+    });
+
+    if (prevBtn) {
+        prevBtn.onclick = () => cycleRecipes(-1);
+    }
+
+    if (nextBtn) {
+        nextBtn.onclick = () => cycleRecipes(1);
+    }
+
+    const loginButton = document.getElementById('login-button');
+    if (loginButton) {
+        loginButton.onclick = () => {
+            chrome.runtime.sendMessage({ type: 'OPEN_LOGIN_PAGE' });
+        };
+    }
+
+    if (deleteBtn) {
+        deleteBtn.onclick = deleteCurrentRecipe;
+    }
+
+    // Get a reference to the button and the recipe paragraph
+    if (toggleRecipesBtn) {
+        toggleRecipesBtn.onclick = () => {
+            // Check if the recipes paragraph is currently visible
+            if (savedRecipes!.style.display !== 'none') {
+                // If it is visible, hide it and change the button image to 'show-icon'
+                savedRecipes!.style.display = 'none';
+                toggleRecipesBtn!.innerHTML = `
+                    <img src="../../src/assets/images/button/show-icon.png" alt="Show" />
+                `;
+            } else {
+                // If it's not visible, show it and change the button image to 'hide-icon'
+                savedRecipes!.style.display = 'block';
+                toggleRecipesBtn!.innerHTML = `
+                    <img src="../../src/assets/images/button/hide-icon.png" alt="Hide" />
+                `;
+            }
+        };
     }
 }
 
