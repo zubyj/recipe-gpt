@@ -124,13 +124,13 @@ async function main(): Promise<void> {
                     // If it is visible, hide it and change the button image to 'show-icon'
                     savedRecipes!.style.display = 'none';
                     toggleRecipesBtn!.innerHTML = `
-                    <img src="../../assets/images/button/show-icon.png" alt="Show" />
+                    <img src="../../src/assets/images/button/show-icon.png" alt="Show" />
                 `;
                 } else {
                     // If it's not visible, show it and change the button image to 'hide-icon'
                     savedRecipes!.style.display = 'block';
                     toggleRecipesBtn!.innerHTML = `
-                    <img src="../../assets/images/button/hide-icon.png" alt="Hide" />
+                    <img src="../../src/assets/images/button/hide-icon.png" alt="Hide" />
                 `;
                 }
             };
