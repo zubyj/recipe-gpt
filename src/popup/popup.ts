@@ -335,6 +335,7 @@ function getRecipeFromGPT(
                 savedRecipes!.classList.remove('hidden');
                 if (fullText.length < 25) {
                     infoMessage!.textContent = 'No recipe found on the page.';
+                    // Do not clear the recipeSelector if no recipe was found
                     return;
                 }
                 // Save the recipe to local storage
@@ -346,6 +347,11 @@ function getRecipeFromGPT(
                         title: title,  // Replace with the actual recipe title
                     });
                     chrome.storage.local.set({ recipes: recipes, currentRecipeIndex: recipes.length - 1 });
+                    // Clear the recipeSelector and populate it with the updated list of recipes
+                    recipeSelector!.innerHTML = '';
+                    const option = document.createElement('option');
+                    option.text = title;
+                    recipeSelector!.appendChild(option);
                     retrieveAndDisplayCurrentRecipe()
                 });
             }
