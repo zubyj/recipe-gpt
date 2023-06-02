@@ -83,6 +83,7 @@ async function main(): Promise<void> {
         const accessToken = await getChatGPTAccessToken();
         if (accessToken) {
             initGetRecipeBtn(new ChatGPTProvider(accessToken));
+            initCopyBtn();
             getRecipeBtn!.classList.remove('hidden');
         } else {
             displayLoginMessage();
@@ -156,7 +157,7 @@ async function retrieveAndDisplayCurrentRecipe(recipeIndex: number | null = null
 
         // Update UI with the last viewed recipe
         if (!recipes || recipes.length === 0) {
-            savedRecipes!.textContent = "Recipes will appear here.";
+            savedRecipes!.textContent = "Recipes will appear here";
         }
         else {
             // Display recipe text and URL
@@ -296,6 +297,7 @@ function getRecipeFromGPT(
     `
     const promptText = getEssentialText(codeText.toString());
     message!.innerHTML = '';
+    infoMessage!.classList.add('hidden');
 
 
     let fullText = '';
@@ -349,6 +351,31 @@ function getRecipeFromGPT(
             }
         },
     });
+}
+
+function copyRecipeToClipboard(): void {
+    // Get the recipe text
+    let recipeText = savedRecipes!.innerText;
+    // Copy the text to clipboard
+    navigator.clipboard.writeText(recipeText)
+        .then(() => {
+            // Successful copy
+            infoMessage!.textContent = "Recipe copied to clipboard.";
+        })
+        .catch((error) => {
+            // Unsuccessful copy
+            console.error("Error:", error);
+            infoMessage!.textContent = "Failed to copy recipe. Please try again.";
+        });
+}
+
+let copyBtn = document.getElementById('copy-button');
+buttons.push(copyBtn);
+
+function initCopyBtn(): void {
+    copyBtn!.onclick = () => {
+        copyRecipeToClipboard();
+    };
 }
 
 
