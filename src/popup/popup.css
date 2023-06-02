@@ -7,7 +7,7 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    min-width: 450px;
+    width: 450px;
     min-height: 300px;
 }
 
