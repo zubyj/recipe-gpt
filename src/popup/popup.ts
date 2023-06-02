@@ -156,7 +156,7 @@ async function retrieveAndDisplayCurrentRecipe(recipeIndex: number | null = null
 
         // Update UI with the last viewed recipe
         if (!recipes || recipes.length === 0) {
-            savedRecipes!.textContent = "Recipe summaries will appear here.";
+            savedRecipes!.textContent = "Recipes will appear here.";
         }
         else {
             // Display recipe text and URL
@@ -234,14 +234,8 @@ async function deleteCurrentRecipe() {
         // Remove the current recipe from the array.
         recipes.splice(currentRecipeIndex, 1);
 
-        // If there are no recipes left, display a message.
-        if (recipes.length === 0) {
-            message!.textContent = "No recipes added.";
-        } else {
-            // If the deleted recipe was the last one in the array, update the currentRecipeIndex to be the new last recipe.
-            if (currentRecipeIndex === recipes.length) {
-                currentRecipeIndex -= 1;
-            }
+        if (currentRecipeIndex === recipes.length) {
+            currentRecipeIndex -= 1;
         }
 
         // Update local storage with the new recipes array and the new currentRecipeIndex.
