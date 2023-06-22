@@ -18,12 +18,22 @@ let nextBtn = document.getElementById('next-button');
 let recipeUrl = document.getElementById('recipe-url');
 let buttons = [getRecipeBtn, toggleRecipesBtn, deleteBtn, prevBtn, nextBtn, recipeUrl];
 
+
+// Helper functions
 function handleError(error: Error): void {
     if (error.message === 'UNAUTHORIZED' || error.message === 'CLOUDFLARE') {
         displayLoginMessage();
     } else {
         console.error('Error:', error);
     }
+}
+
+function setInfoMessage(text: string): void {
+    let prevText = infoMessage!.textContent;
+    infoMessage!.textContent = text;
+    setTimeout(() => {
+        infoMessage!.textContent = prevText;
+    }, 3000);
 }
 
 function enableButtons() {
@@ -50,7 +60,8 @@ function initGetRecipeBtn(chatGPTProvider: ChatGPTProvider): void {
         if (recipe) {
             getRecipeFromGPT(chatGPTProvider, recipe);
         } else {
-            infoMessage!.textContent = "Cant find recipe. Please refresh the page or try another page.";
+            let errorMessage = "Cant find recipe. Please refresh the page or try another page.";
+            setInfoMessage(errorMessage);
         }
     };
 }
@@ -114,29 +125,25 @@ async function main(): Promise<void> {
         };
     }
 
-    if (deleteBtn) {
-        deleteBtn.onclick = deleteCurrentRecipe;
-    }
+    deleteBtn!.onclick = deleteCurrentRecipe;
 
     // Get a reference to the button and the recipe paragraph
-    if (toggleRecipesBtn) {
-        toggleRecipesBtn.onclick = () => {
-            // Check if the recipes paragraph is currently visible
-            if (savedRecipes!.style.display !== 'none') {
-                // If it is visible, hide it and change the button image to 'show-icon'
-                savedRecipes!.style.display = 'none';
-                toggleRecipesBtn!.innerHTML = `
+    toggleRecipesBtn!.onclick = () => {
+        // Check if the recipes paragraph is currently visible
+        if (savedRecipes!.style.display !== 'none') {
+            // If it is visible, hide it and change the button image to 'show-icon'
+            savedRecipes!.style.display = 'none';
+            toggleRecipesBtn!.innerHTML = `
                     <img src="../../src/assets/images/button/show-icon.png" alt="Show" />
                 `;
-            } else {
-                // If it's not visible, show it and change the button image to 'hide-icon'
-                savedRecipes!.style.display = 'block';
-                toggleRecipesBtn!.innerHTML = `
+        } else {
+            // If it's not visible, show it and change the button image to 'hide-icon'
+            savedRecipes!.style.display = 'block';
+            toggleRecipesBtn!.innerHTML = `
                     <img src="../../src/assets/images/button/hide-icon.png" alt="Hide" />
                 `;
-            }
-        };
-    }
+        }
+    };
 }
 
 async function retrieveAndDisplayCurrentRecipe(recipeIndex: number | null = null): Promise<void> {
@@ -341,8 +348,7 @@ function getRecipeFromGPT(
                 message!.classList.add('hidden');
                 savedRecipes!.classList.remove('hidden');
                 if (fullText.length < 25) {
-                    infoMessage!.textContent = 'No recipe found on the page.';
-                    // Do not clear the recipeSelector if no recipe was found
+                    setInfoMessage('No recipe found on the page.');
                     return;
                 }
                 // Save the recipe to local storage
@@ -379,7 +385,7 @@ function copyRecipeToClipboard(): void {
         })
         .catch((error) => {
             console.error("Error:", error);
-            infoMessage!.textContent = "Failed to copy recipe. Please try again.";
+            setInfoMessage('Failed to copy recipe. Please try again.');
         });
 
     setTimeout(() => {
