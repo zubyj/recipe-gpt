@@ -296,6 +296,7 @@ function getRecipeFromGPT(
     getRecipeBtn!.innerText = 'Summarizing the recipe ...';
     // get the cat from assets/images/cat.gif and set it as the innerHTML of the message div
     document.getElementById('chef-cat')?.classList.remove('hidden');
+
     infoMessage!.innerHTML = `
         <img src="../../src/assets/images/cat.gif" alt="Cat" />
     `;
@@ -314,6 +315,7 @@ function getRecipeFromGPT(
     `
     const promptText = getEssentialText(codeText.toString());
     message!.innerHTML = '';
+    savedRecipes!.innerHTML = '';
     infoMessage!.classList.add('hidden');
 
 
