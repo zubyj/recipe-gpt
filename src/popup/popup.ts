@@ -204,6 +204,8 @@ async function cycleRecipes(direction: number) {
         // Update UI
         if (recipes && recipes.length > 0) {
             savedRecipes!.innerHTML = recipes[currentRecipeIndex].text;
+            recipeUrl?.classList.remove('hidden');
+            recipeUrl!.setAttribute('href', recipes[currentRecipeIndex].url);
 
         }
         else {
