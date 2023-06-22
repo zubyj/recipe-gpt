@@ -409,5 +409,4 @@ function initCopyBtn(): void {
     };
 }
 
-
 main();

@@ -103,12 +103,14 @@ body {
     background-color: purple;
 }
 
-#delete-button:hover {
-    background-color: red;
+#delete-button {
+    color: red;
+    border: 1px solid red;
 }
 
-#toggle-recipes-btn {
-    background-color:
+#delete-button:hover {
+    background-color: red;
+    color: #FFFFFF;
 }
 
 .hidden {
