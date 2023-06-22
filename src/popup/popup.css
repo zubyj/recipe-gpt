@@ -18,7 +18,7 @@ body {
 }
 
 #icon {
-    margin-right: 1rem;
+    margin-right: 2rem;
 }
 
 #title {
@@ -39,7 +39,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: #FF5722;
+    background-color: purple;
     padding: 10px 20px;
     color: #FFFFFF;
     transition: all 0.3s ease;
@@ -51,10 +51,10 @@ body {
 }
 
 #buttonText {
-    color: lightcyan;
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
     margin-left: 10px;
     font-size: 1rem;
-    font-weight: 600;
+    font-weight: 500;
 }
 
 #recipes-container {
@@ -96,17 +96,12 @@ body {
 }
 
 .nav-button:hover {
-    background-color: #FF5722;
     color: #FFFFFF;
-}
-
-#delete-button {
-    background-color: red;
-    opacity: .9;
+    background-color: purple;
 }
 
 #delete-button:hover {
-    background-color: #FF5722;
+    background-color: red;
 }
 
 #toggle-recipes-btn {
@@ -124,7 +119,12 @@ body {
 
 /* Recipes Display */
 #copy-button {
-    border: 1px solid #FF5722;
+    border: 1px solid purple;
+    color: purple;
+}
+
+#copy-button:hover {
+    color: white;
 }
 
 .letter {
