@@ -242,14 +242,18 @@ async function deleteCurrentRecipe() {
         // Remove the current recipe from the array.
         recipes.splice(currentRecipeIndex, 1);
 
-        if (currentRecipeIndex === recipes.length) {
+        // If we're not at the start, move the index back one.
+        if (currentRecipeIndex > 0) {
             currentRecipeIndex -= 1;
         }
 
         // Update local storage with the new recipes array and the new currentRecipeIndex.
         chrome.storage.local.set({ recipes: recipes, currentRecipeIndex: currentRecipeIndex });
         populateRecipeSelector(recipes); // Add this line to update the dropdown
-        cycleRecipes(1);
+
+        // Display the current recipe (could be none if all were deleted)
+        retrieveAndDisplayCurrentRecipe(currentRecipeIndex);
+
     } catch (error) {
         console.error('Error:', error);
     }
