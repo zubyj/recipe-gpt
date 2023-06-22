@@ -282,7 +282,13 @@ function getRecipeFromGPT(
 ): void {
 
     let recipeBtnText = getRecipeBtn!.innerHTML;
-    getRecipeBtn!.innerText = 'Summarizing the recipe...';
+    getRecipeBtn!.innerText = 'Summarizing the recipe ...';
+    // get the cat from assets/images/cat.gif and set it as the innerHTML of the message div
+    document.getElementById('chef-cat')?.classList.remove('hidden');
+    infoMessage!.innerHTML = `
+        <img src="../../src/assets/images/cat.gif" alt="Cat" />
+    `;
+
     disableButtons();
 
 
@@ -329,6 +335,7 @@ function getRecipeFromGPT(
 
             if (event.type === 'done') {
                 enableButtons();
+                document.getElementById('chef-cat')?.classList.add('hidden');
 
                 getRecipeBtn!.innerHTML = recipeBtnText;
                 message!.classList.add('hidden');
