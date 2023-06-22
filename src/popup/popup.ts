@@ -9,7 +9,6 @@ let infoMessage = document.getElementById('info-message');
 let savedRecipes = document.getElementById('saved-recipes');
 let recipeSelector = document.getElementById('recipe-selector');
 
-
 // Buttons
 let getRecipeBtn = document.getElementById('get-recipe-btn');
 let toggleRecipesBtn = document.getElementById('toggle-recipes-btn');
@@ -34,7 +33,6 @@ function enableButtons() {
 function disableButtons() {
     buttons.forEach(button => button.disabled = true);
 }
-
 
 function displayLoginMessage(): void {
     document.getElementById('login-button')!.classList.remove('hidden');
@@ -61,7 +59,7 @@ function populateRecipeSelector(recipes) {
     // First clear all existing options
     recipeSelector!.innerHTML = '';
     // Then populate with the updated list of recipes
-    if (recipes.length == 0) {
+    if (recipes && recipes.length == 0) {
         const option = document.createElement('option');
         option.text = 'No recipes added';
         recipeSelector!.appendChild(option);
@@ -157,15 +155,14 @@ async function retrieveAndDisplayCurrentRecipe(recipeIndex: number | null = null
         currentRecipeIndex = recipeIndex !== null ? recipeIndex : result.currentRecipeIndex;
 
         // Update UI with the last viewed recipe
-        if (!recipes || recipes.length === 0) {
-            savedRecipes!.textContent = "Recipes will appear here";
+        if (recipes.length === 0) {
+            savedRecipes!.textContent = "Open a website with a recipe and click the 'Get Recipe' button to summarize it.";
         }
         else {
             // Display recipe text and URL
             savedRecipes!.innerHTML = recipes[currentRecipeIndex].text;
             recipeUrl?.classList.remove('hidden');
             recipeUrl!.setAttribute('href', recipes[currentRecipeIndex].url); // <-- This line sets the URL
-
         }
 
         populateRecipeSelector(recipes);
@@ -363,17 +360,23 @@ function getRecipeFromGPT(
 function copyRecipeToClipboard(): void {
     // Get the recipe text
     let recipeText = savedRecipes!.innerText;
+    let copyBtnText = document.getElementById('copy-btn-text');
+    let copyText = copyBtnText!.innerText;
+
     // Copy the text to clipboard
     navigator.clipboard.writeText(recipeText)
         .then(() => {
-            // Successful copy
-            infoMessage!.textContent = "Recipe copied to clipboard.";
+            copyBtnText!.innerText = 'Copied!';
         })
         .catch((error) => {
-            // Unsuccessful copy
             console.error("Error:", error);
             infoMessage!.textContent = "Failed to copy recipe. Please try again.";
         });
+
+    setTimeout(() => {
+        copyBtnText!.innerText = copyText;
+    }
+        , 2000);
 }
 
 let copyBtn = document.getElementById('copy-button');
